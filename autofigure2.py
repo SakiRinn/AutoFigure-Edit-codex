@@ -86,6 +86,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any, Literal
 
 import requests
+import codex_bridge
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -99,8 +100,8 @@ from transformers import AutoModelForImageSegmentation
 
 BIANXIE_BASE_URL = "https://api.bianxie.ai/v1"
 
-PUBLIC_PROVIDER_CHOICES = ("openrouter", "bianxie", "custom", "gemini", "openai_response")
-PUBLIC_IMAGE_PROVIDER_CHOICES = ("openrouter", "bianxie", "custom", "gemini", "openai")
+PUBLIC_PROVIDER_CHOICES = ("openrouter", "bianxie", "custom", "gemini", "openai_response", "codex")
+PUBLIC_IMAGE_PROVIDER_CHOICES = ("openrouter", "bianxie", "custom", "gemini", "openai", "codex")
 
 
 def _custom_base_url_default() -> Optional[str]:
@@ -131,6 +132,11 @@ def _argparse_image_provider(value: str) -> str:
 
 
 PROVIDER_CONFIGS = {
+    "codex": {
+        "base_url": None,
+        "default_image_model": "codex-imagegen",
+        "default_svg_model": "codex-agent",
+    },
     "openrouter": {
         "base_url": "https://openrouter.ai/api/v1",
         "default_image_model": "google/gemini-3.1-flash-image-preview",
@@ -166,8 +172,8 @@ IMAGE_PROVIDER_CONFIGS = {
     },
 }
 
-ProviderType = Literal["openrouter", "bianxie", "custom", "gemini", "openai_response"]
-ImageProviderType = Literal["openrouter", "bianxie", "custom", "gemini", "openai"]
+ProviderType = Literal["openrouter", "bianxie", "custom", "gemini", "openai_response", "codex"]
+ImageProviderType = Literal["openrouter", "bianxie", "custom", "gemini", "openai", "codex"]
 PlaceholderMode = Literal["none", "box", "label"]
 GEMINI_DEFAULT_IMAGE_SIZE = "4K"
 IMAGE_SIZE_CHOICES = ("1K", "2K", "4K")
@@ -219,6 +225,8 @@ def call_llm_text(
         LLM 响应文本
     """
     provider = _normalize_provider_name(provider)
+    if provider == "codex":
+        return codex_bridge.call_text([prompt], model)
     if provider in ("bianxie", "custom"):
         return _call_openai_compatible_text(prompt, api_key, model, base_url, max_tokens, temperature)
     if provider == "gemini":
@@ -253,6 +261,8 @@ def call_llm_multimodal(
         LLM 响应文本
     """
     provider = _normalize_provider_name(provider)
+    if provider == "codex":
+        return codex_bridge.call_text(contents, model)
     if provider in ("bianxie", "custom"):
         return _call_openai_compatible_multimodal(contents, api_key, model, base_url, max_tokens, temperature)
     if provider == "gemini":
@@ -287,6 +297,8 @@ def call_llm_image_generation(
         生成的 PIL Image，失败返回 None
     """
     provider = _normalize_provider_name(provider, image=True)
+    if provider == "codex":
+        return codex_bridge.call_image(prompt, reference_image, model, image_size)
     if provider == "custom":
         return _call_openai_compatible_image_generation(prompt, api_key, model, base_url, reference_image)
     if provider == "bianxie":
@@ -3282,9 +3294,9 @@ def method_to_svg(
     if svg_gen_model is None:
         svg_gen_model = config["default_svg_model"]
 
-    if input_figure_path is None and not image_api_key:
+    if input_figure_path is None and image_provider != "codex" and not image_api_key:
         raise ValueError("必须提供 image_api_key（或复用 api_key）用于步骤一生图")
-    if stop_after >= 4 and not api_key:
+    if stop_after >= 4 and provider != "codex" and not api_key:
         raise ValueError("步骤 4/5 需要提供 api_key")
     if input_figure_path is None and not method_text:
         raise ValueError("未提供 method_text，且未指定 input_figure_path")

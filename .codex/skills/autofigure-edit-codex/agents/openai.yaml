@@ -1,0 +1,4 @@
+interface:
+  display_name: "AutoFigure-Edit Codex"
+  short_description: "启动AutoFigure-Edit链路并完成可编辑科研图后处理"
+  default_prompt: "使用 $autofigure-edit-codex，根据我的材料运行AutoFigure-Edit，并完成SVG压缩和PPTX导出。"

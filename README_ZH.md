@@ -1,3 +1,61 @@
+# AutoFigure-Edit Codex订阅适配
+
+本项目基于[原版AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit)，通过Codex SDK完成生图和SVG生成。
+
+Provider使用运行主机上的Codex登录状态，启动前须完成账号登录。
+
+> **订阅登录**
+>
+> 使用具有Codex访问权限的ChatGPT订阅账号登录，模型调用使用该账号的Codex额度。
+
+原版处理流程保持不变，Codex Provider自动返回模型结果，Skill负责材料准备及PPTX后处理。
+
+## 准备环境
+
+先按下方原版说明安装项目依赖，环境配置细节见[使用说明](TUTORIAL.md#安装与启动)。
+
+**运行条件：**
+
+- Python环境须安装本仓库的 `requirements.txt`，其中包含Codex SDK及配套运行时。
+- 本地分割须准备SAM3和RMBG权重；安装Codex CLI还需要Node.js与npm。
+
+在执行绘图的主机上激活Python环境，从仓库根目录安装依赖与CLI，再登录ChatGPT账号：
+
+```bash
+python -m pip install -r requirements.txt
+npm install --global @openai/codex@latest
+codex login
+codex login status
+```
+
+登录完成后，可在Codex中运行完整绘图流程，也可从命令行启动SVG生成。
+
+## 开始绘图
+
+[入口Skill](.codex/skills/autofigure-edit-codex/SKILL.md)支持从方法说明或项目代码开始，最终导出可编辑SVG和PPTX。
+
+在本仓库的Codex任务中调用 `autofigure-edit-codex`，提供材料并说明目标风格：
+
+```text
+请使用 autofigure-edit-codex，根据我的方法说明生成科研图，并导出可编辑SVG和PPTX。
+方法说明：……
+```
+
+单独运行原版SVG流程时，先将方法说明保存为 `method.txt`，再从仓库根目录执行：
+
+```bash
+python autofigure2.py \
+  --provider codex \
+  --method_file method.txt \
+  --output_dir outputs/run-001 \
+  --sam_backend local \
+  --optimize_iterations 1
+```
+
+该命令自动完成模型调用，PPTX导出由Skill后处理完成。下方保留原版项目说明。
+
+---
+
 <div align="center">
 
 <img src="img/logo.png" alt="AutoFigure-edit Logo" width="100%"/>
@@ -536,7 +594,7 @@ AutoFigure-edit/
 
 ## 🤝 社区与支持
 
-**微信交流群**  
+**微信交流群**
 扫描二维码加入我们的社区。如果二维码已过期，请添加微信号 `nauhcutnil` 或联系 `tuchuan@mail.hfut.edu.cn`。添加好友时，请按照 **“学校/公司-职务/学位-姓名”** 的格式备注身份信息，以便我们及时通过申请。
 
 <table>
@@ -562,13 +620,13 @@ url={https://openreview.net/forum?id=5N3z9JQJKq}
 }
 
 @misc{lin2026autofigureeditgeneratingeditablescientific,
-      title={AutoFigure-Edit: Generating Editable Scientific Illustration}, 
+      title={AutoFigure-Edit: Generating Editable Scientific Illustration},
       author={Zhen Lin and Qiujie Xie and Minjun Zhu and Shichen Li and Qiyao Sun and Enhao Gu and Yiran Ding and Ke Sun and Fang Guo and Panzhong Lu and Zhiyuan Ning and Yixuan Weng and Yue Zhang},
       year={2026},
       eprint={2603.06674},
       archivePrefix={arXiv},
       primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2603.06674}, 
+      url={https://arxiv.org/abs/2603.06674},
 }
 
 @dataset{figurebench2025,

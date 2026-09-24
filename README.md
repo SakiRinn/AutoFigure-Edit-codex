@@ -1,3 +1,66 @@
+# AutoFigure-Edit for Codex Subscriptions
+
+This fork adapts [AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit) to generate images and SVGs through the Codex SDK.
+
+The provider uses the Codex login on the machine running the pipeline.
+
+> **Subscription sign-in**
+>
+> Sign in with a ChatGPT subscription that includes Codex access. Calls use your Codex allowance.
+
+The original pipeline is preserved. The Codex provider returns model results automatically.
+
+The entry skill prepares inputs and exports editable PowerPoint files after SVG generation.
+
+## Setup
+
+Follow the upstream setup below; see the [setup guide](TUTORIAL.md#安装与启动) for environment details.
+
+**Requirements:**
+
+- Install this repo's `requirements.txt` in your Python environment, including the Codex SDK.
+- Local segmentation needs SAM3 and RMBG weights. The CLI installation needs Node.js and npm.
+
+Activate your Python environment and run these commands from the repo root.
+
+Install the dependencies and CLI, then sign in with your ChatGPT account:
+
+```bash
+python -m pip install -r requirements.txt
+npm install --global @openai/codex@latest
+codex login
+codex login status
+```
+
+Once signed in, use the entry skill for the full workflow or the CLI for SVG generation.
+
+## Generate a Figure
+
+The [entry skill](.codex/skills/autofigure-edit-codex/SKILL.md) accepts method descriptions or project code and exports editable SVG and PPTX files.
+
+In a Codex task for this repo, invoke `autofigure-edit-codex` with your source material and style:
+
+```text
+Use autofigure-edit-codex to turn my method description into a scientific figure.
+Export an editable SVG and PPTX.
+Method description: ...
+```
+
+For the SVG pipeline alone, save your method description as `method.txt` and run from the repo root:
+
+```bash
+python autofigure2.py \
+  --provider codex \
+  --method_file method.txt \
+  --output_dir outputs/run-001 \
+  --sam_backend local \
+  --optimize_iterations 1
+```
+
+Model calls run automatically. PPTX export is a separate step handled by the entry skill.
+
+---
+
 <div align="center">
 
 <img src="img/logo.png" alt="AutoFigure-Edit Logo" width="100%"/>
@@ -555,11 +618,11 @@ AutoFigure-edit/
 
 ## 🤝 Community & Support
 
-**WeChat Discussion Group**  
+**WeChat Discussion Group**
 Scan the QR code to join our community. If the QR code has expired, please add WeChat ID `nauhcutnil` or contact `tuchuan@mail.hfut.edu.cn`.
 
-**When sending a friend request, please identify yourself in the format:**  
-`University/Company - Degree/Position - Name`  
+**When sending a friend request, please identify yourself in the format:**
+`University/Company - Degree/Position - Name`
 (e.g., `Westlake University - PhD Student - Zhang San`).
 
 <table>
