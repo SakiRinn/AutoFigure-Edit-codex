@@ -20,8 +20,8 @@
 4. 在Codex中调用 `autofigure-edit-codex`，提供材料并说明目标风格。
    - 整体采用rich pastel配色，图标使用lineal color或restrained flat特征，也可融合。
    - 图标用于概括对象，具体结构优先用形状示意；适用的3D结构保留立体表达。
-   - 画面组织、参考图和风格规则见Skill的[生图设计](.codex/skills/autofigure-edit-codex/references/design.md)。
-   - Skill将绘图要求写入输入材料，以新的运行目录启动主程序。
+   - 画面组织与风格规则见Skill的[生图设计](.codex/skills/autofigure-edit-codex/references/design.md)。配套图标展示图仅供Agent理解风格；仅在用户明确指定生图参考图时使用 `--reference_image_path`。
+   - Skill将方法事实与用户明确要求写入输入材料，具体布局和视觉细节交给生图模型安排，以新的运行目录启动主程序。
 5. 手动启动使用下面的命令。Provider自动调用Codex并返回结果，同一Python进程继续执行。
 
    ```bash

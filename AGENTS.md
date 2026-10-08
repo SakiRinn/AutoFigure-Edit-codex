@@ -25,6 +25,8 @@
 
 - Python代码的import统一放在文件开头，新增或修改代码时采用顶层导入。
 - 一次性验证脚本与测试文件用毕删除，不纳入Git提交。
+- 生图输入保留方法事实与明确要求，具体布局和视觉细节由生图模型安排。
+  - 保留异色要求；用户未指定时，外层Agent不预先固定分区位置、空间分配或加粗名单，生成后按实际画面检查。
 - 科研图默认采用rich pastel配色，保持专业、清晰，色温不限。
   - 背景与内部元素分别配色；图标与局部背景、箭头与文字分别使用不同色相，标签沿用文字配色。
   - 图标采用[lineal color](.codex/skills/autofigure-edit-codex/assets/lineal_color.png)或[restrained flat](.codex/skills/autofigure-edit-codex/assets/restrained_flat.png)特征，也可融合。
@@ -46,7 +48,8 @@
   - `codex_bridge.py` 统一在顶层导入SDK；模型请求与结果均在内存传递，远端尚未部署此版本。
 - 后处理实现位于Skill目录。
   - `compact_svg.py` 支持连续同父矢量合并、根级区域栅格化和语义文本合并；`svg_to_pptx.mjs` 将多行混合样式文本导出为一个文本框。
-  - [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)负责画面组织与风格；[可编辑转换](.codex/skills/autofigure-edit-codex/references/postprocess.md)负责SVG重建、缺陷修复和后处理。
+  - 生图输入分工见 `references/design.md` 的风格传入与生图检查章节；外层Agent传递事实和明确要求，模型选择具体构图与视觉细节，已通过Skill校验与独立文档复核。
+  - [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)负责画面组织与风格；配套图标展示图仅供Agent理解风格，生图只传入用户明确指定的参考图。本机两份全局Skill已同步此规则，依据入口Skill与设计文档；远端尚未同步此次修改。[可编辑转换](.codex/skills/autofigure-edit-codex/references/postprocess.md)负责SVG重建、缺陷修复和后处理。
 - PII示例已完成真实全链路，运行记录位于 `outputs/pii-flywheel-003/`。
   - `run.log` 记录21个图标分割与RMBG抠图，执行一次SVG优化并完成替换；`repairs.json` 记录局部修复和后处理图标修整。
   - `editable.objects.json` 记录工作副本277个叶对象降为136个，26组文本合为26个文本框，102个多色散点合为一张局部图片。
