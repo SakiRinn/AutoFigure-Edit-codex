@@ -1,14 +1,14 @@
 # AutoFigure-Edit for Codex Subscriptions
 
-This fork adapts [AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit) to generate images and SVGs through the Codex SDK.
+This fork adapts [AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit) to use the current Codex session's built-in image tool for images and the Codex SDK for SVGs.
 
-The provider uses the Codex login on the machine running the pipeline.
+Text requests use the Codex login on the pipeline host. Image requests need an active Codex session.
 
 > **Subscription sign-in**
 >
 > Sign in with a ChatGPT subscription that includes Codex access. Calls use your Codex allowance.
 
-The original pipeline is preserved. The Codex provider returns model results automatically.
+The original pipeline is preserved. Its image call waits for the current agent to return the generated image.
 
 The entry skill prepares inputs and exports editable PowerPoint files after SVG generation.
 
@@ -46,9 +46,10 @@ Export an editable SVG and PPTX.
 Method description: ...
 ```
 
-For the SVG pipeline alone, save your method description as `method.txt` and run from the repo root:
+Save your method description as `method.txt`. The current Codex agent launches this command and handles the [image exchange](.codex/skills/autofigure-edit-codex/references/imagegen.md):
 
 ```bash
+export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
 python autofigure2.py \
   --provider codex \
   --method_file method.txt \
@@ -57,7 +58,9 @@ python autofigure2.py \
   --optimize_iterations 1
 ```
 
-Model calls run automatically. PPTX export is a separate step handled by the entry skill.
+The agent answers image requests while the same Python process waits. Text calls use the SDK.
+
+PPTX export follows in the entry skill. For standalone CLI use, supply an existing image with `--input_figure_path` instead of `--method_file`.
 
 ---
 

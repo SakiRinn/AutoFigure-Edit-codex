@@ -1,7 +1,7 @@
 ---
 name: autofigure-edit-codex
 description: >-
-  作为Codex中的AutoFigure-Edit运行入口，准备绘图材料并启动SDK Provider链路，
+  作为Codex中的AutoFigure-Edit运行入口，准备绘图材料，以当前会话内置image-gen接管生图API调用，
   跟进运行结果，完成SVG对象压缩和可编辑PPTX导出。
 ---
 
@@ -11,7 +11,7 @@ description: >-
 
 > **执行职责**
 >
-> Agent负责材料准备、进程运行及后处理；Python Provider通过Codex SDK完成模型调用。
+> Agent负责材料准备、内置生图和后处理。Python Provider等待图片回传，文本请求继续使用Codex SDK。
 
 主流程的提示模板与阶段算法保持冻结，后处理修改独立工作副本。
 
@@ -45,11 +45,15 @@ description: >-
 - 用户提供项目代码时，核对入口和数据流，再将实际方法整理为 `method.txt`。
 - 用户提供已定稿图片时，使用 `--input_figure_path` 跳过生图，替代方法文本参数。
 
-SDK任务与当前对话隔离。方法文本生图时，`method.txt` 须写明绘图内容和风格。
+方法文本生图时，`method.txt` 须写明绘图内容和风格。原程序组装提示后，Provider发布生图请求。
 
 默认使用方法文本生图。仅在用户明确指定生图参考图时，通过 `--reference_image_path` 传入该图片的本地路径。
 
 默认采用rich pastel配色，图标使用lineal color或restrained flat特征，也可融合。
+
+中文默认华文宋体（STSong），缺失时回退到新宋体（NSimSun）；英文默认Times New Roman。
+
+生图材料写明字体要求，可编辑转换沿用相同约定。
 
 结构关系优先用形状示意，图标用于概括对象。将适用要求按[生图设计](references/design.md)写入方法文本。
 
@@ -61,13 +65,16 @@ SDK任务与当前对话隔离。方法文本生图时，`method.txt` 须写明�
 
 ## 执行主流程
 
-由当前Agent执行启动命令并保留进程句柄。材料齐备后持续推进到后处理，不能只给用户一条命令。
+由当前Agent执行启动命令并保留进程句柄。启动前读取[生图交接](references/imagegen.md)，确认本会话内置image-gen可用。
+
+原程序在生图调用内等待，Agent须处理请求后继续跟进同一进程。材料齐备后持续推进到后处理。
 
 启动命令须采用执行主机上的解释器和实际输入路径，分割后端与优化次数按任务配置。
 
 以下示例从仓库根目录启动本地分割，执行一次SVG优化；路径与参数值按本次任务替换。
 
 ```bash
+export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
 .venv/bin/python -u autofigure2.py \
   --provider codex \
   --method_file outputs/run-001/method.txt \
@@ -81,31 +88,33 @@ SDK任务与当前对话隔离。方法文本生图时，`method.txt` 须写明�
 
 **参数约定：**
 
-- 保留 `--provider codex`，生图Provider默认跟随；模型请求由SDK自动完成。
+- 保留 `--provider codex`，生图Provider默认跟随；Agent回传生图结果，SDK自动完成文本请求。
 - 完整流程默认执行到第5步，只有用户要求阶段性输出时才设置 `--stop_after`。
 - 默认使用Codex配置的Agent模型；用户指定模型时通过 `--svg_model` 传入。
-- 生图模型由内置工具管理，使用默认 `codex-imagegen`；尺寸与放大行为按教程处理。
+- 生图使用默认 `codex-imagegen`；模型与思考强度受内置工具接口约束，尺寸与放大行为按教程处理。
 
 进程启动后，以当前进程状态、日志和本次生成的文件判断执行结果。
 
 ### 跟进运行
 
-读取 `run.log` 了解当前阶段，并等待同一进程结束；同一输出目录只运行一个进程。
+读取 `run.log` 了解当前阶段；同一输出目录只运行一个进程。
+
+出现 `Codex image request:` 后，按[生图交接](references/imagegen.md)处理该请求，再等待同一进程继续。
 
 **完成检查：**
 
-- `Codex calling` 表示Provider正在调用SDK，保持原进程运行并继续观察日志。
+- `Codex calling text` 表示SDK文本请求；`Codex image request:` 表示等待当前Agent生图，须及时回传。
 - 主流程结束后核对退出状态与 `final.svg`，结合日志检查阶段错误。
 - 渲染 `final.svg` 并检查结构；仅嵌入整张图片的保底SVG须标为主流程未完成。
 - 主流程成功后保留原稿，接着执行后处理，完成PPTX验证后再交付。
 
-Provider在内存中返回模型结果。运行状态通过进程和日志读取，外层Agent只操作输入及生成后的产物。
+Provider将回传图片读为PIL对象，文本结果通过SDK返回。Agent按请求原文调用内置工具，原程序继续保存产物。
 
 ### 中断处理
 
 进程失败或中断时，先读取日志定位原因；修正运行条件后重新执行命令。
 
-每次模型调用都会重新请求SDK。重跑使用新的输出目录，避免旧产物混入本次完成检查。
+每次生图调用创建独立交接目录，文本调用创建SDK任务。重跑使用新的输出目录，避免旧产物混入完成检查。
 
 **处理约定：**
 

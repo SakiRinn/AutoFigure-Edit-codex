@@ -1,14 +1,14 @@
 # AutoFigure-Edit Codex订阅适配
 
-本项目基于[原版AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit)，通过Codex SDK完成生图和SVG生成。
+本项目基于[原版AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit)，由当前Codex会话内置image-gen生图，SDK完成SVG生成。
 
-Provider使用运行主机上的Codex登录状态，启动前须完成账号登录。
+文本Provider使用运行主机上的Codex登录状态；生图需要当前Codex会话处理请求。
 
 > **订阅登录**
 >
 > 使用具有Codex访问权限的ChatGPT订阅账号登录，模型调用使用该账号的Codex额度。
 
-原版处理流程保持不变，Codex Provider自动返回模型结果，Skill负责材料准备及PPTX后处理。
+原版处理流程保持不变，生图调用等待当前Agent回传图片。Skill负责材料准备及PPTX后处理。
 
 ## 准备环境
 
@@ -41,9 +41,10 @@ codex login status
 方法说明：……
 ```
 
-单独运行原版SVG流程时，先将方法说明保存为 `method.txt`，再从仓库根目录执行：
+将方法说明保存为 `method.txt`，由当前Codex Agent启动以下命令，并按[生图交接](.codex/skills/autofigure-edit-codex/references/imagegen.md)处理请求：
 
 ```bash
+export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
 python autofigure2.py \
   --provider codex \
   --method_file method.txt \
@@ -52,7 +53,9 @@ python autofigure2.py \
   --optimize_iterations 1
 ```
 
-该命令自动完成模型调用，PPTX导出由Skill后处理完成。下方保留原版项目说明。
+同一Python进程等待Agent回传图片，文本请求通过SDK自动完成，PPTX由Skill导出。
+
+独立终端运行时，可用 `--input_figure_path` 替代 `--method_file` 导入已有图片。下方保留原版项目说明。
 
 ---
 
