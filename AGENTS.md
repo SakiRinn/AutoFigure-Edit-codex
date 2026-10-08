@@ -51,15 +51,15 @@
 - 后处理实现位于Skill目录。
   - `compact_svg.py` 支持连续同父矢量合并、根级区域栅格化和语义文本合并；`svg_to_pptx.mjs` 将多行混合样式文本导出为一个文本框。
   - 生图输入分工见 `references/design.md` 的风格传入与生图检查章节；外层Agent传递事实和明确要求，模型选择具体构图与视觉细节，已通过Skill校验与独立文档复核。
-  - [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)负责画面组织与风格；配套图标展示图仅供Agent理解风格，生图只传入用户明确指定的参考图。本机两份全局Skill与webide曾同步设计规则；本次生图交接仅更新仓库Skill，外部安装副本尚未同步。[可编辑转换](.codex/skills/autofigure-edit-codex/references/postprocess.md)负责SVG重建、缺陷修复和后处理。
+  - [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)负责画面组织与风格；配套图标展示图仅供Agent理解风格，生图只传入用户明确指定的参考图。webide仓库及两套Skill已同步生图交接与字体规则，逐文件比较一致；本机两份全局Skill尚未同步本次修改。[可编辑转换](.codex/skills/autofigure-edit-codex/references/postprocess.md)负责SVG重建、缺陷修复和后处理。
 - PII示例已完成真实全链路，运行记录位于 `outputs/pii-flywheel-003/`。
   - `run.log` 记录21个图标分割与RMBG抠图，执行一次SVG优化并完成替换；`repairs.json` 记录局部修复和后处理图标修整。
   - `editable.objects.json` 记录工作副本277个叶对象降为136个，26组文本合为26个文本框，102个多色散点合为一张局部图片。
   - `final.svg` 是上游原稿，`editable.svg` 和 `editable.png` 保存该次运行的图标风格；PPTX保留44个原生文本对象与90个原生几何对象，整片散点为唯一局部图片；SVG中的纯白底层在PPT中转为页面背景，PPT共135个可选对象。
   - 003示例曾事后重绘图标，不符合后来新增的一比一复刻要求；`verification.json` 只保存编辑单元检查；导出后按Presentations Skill校验并重新导入渲染。
 
-- webide已有GPU环境，新的生图交接尚未部署验证；项目位于 `/root/autofigure-edit-codex`，配置使用本机 `.env` 副本。
-  - `.env.webide-runtime` 指定独立Linux PPT运行时并启用离线模型缓存；SAM3源码位于 `/root/sam3`，模型缓存位于 `/root/.cache/huggingface/hub`。项目Skill与Presentations Skill均安装到远端两套Skill目录。
+- webide已部署当前生图交接，Linux回传与超时清理检查通过；项目位于 `/root/autofigure-edit-codex`，配置使用本机 `.env` 副本。
+  - `.env.webide-runtime` 指定Linux PPT运行时与离线模型缓存；SAM3源码位于 `/root/sam3`。项目Skill安装到远端两套目录，GPU启动器帮助命令通过；字体清单未检出STSong、NSimSun或Times New Roman，正式导出前须补齐。
   - `outputs/webide-demo-001/run.log` 记录H20执行3个图标分割、RMBG抠图和一次SVG优化，最终替换成功；`remote-tests.log` 保存部署测试，新增描边回归后的22项后处理测试记录在 `skill-tests.log`，使用入口见 `TUTORIAL.md` 的webide章节。
 
 ## 工作流程
