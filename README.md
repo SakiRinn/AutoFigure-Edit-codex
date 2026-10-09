@@ -46,17 +46,23 @@ Export an editable SVG and PPTX.
 Method description: ...
 ```
 
-Save the paper method as `method.txt`. Both input files accept UTF-8 Markdown.
+Save the paper method as `method.txt`. All input files accept UTF-8 Markdown.
 
 The CLI reads [style.txt](style.txt) beside `autofigure2.py`, independent of the working directory.
 
 Copy that file to customize the style. `--style_file path/to/style.txt` replaces the default.
 
-The English prompt wraps each input in `<METHOD>` and `<STYLE>`.
+The English prompt places `<STYLE>` before `<METHOD>`.
 
-A reference image guides visual style. Explicit style requirements take priority.
+Optional `--detail_file path/to/detail.txt` adds concrete drawing decisions in `<DETAIL>`.
 
-The skill reads the selected style file, then checks the generated figure against both inputs.
+Omitted or blank details add no section. Each file should describe the complete current requirements.
+
+An agent can describe useful details from a candidate image and request a new generation from text.
+
+A reference image guides visual style. Explicit style and detail requirements take priority.
+
+The skill reads the selected style file, then checks the generated figure against the method, style, and any supplied details.
 
 The current Codex agent launches this command and handles the [image exchange](.codex/skills/autofigure-edit-codex/references/imagegen.md):
 

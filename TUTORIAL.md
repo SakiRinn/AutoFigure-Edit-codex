@@ -73,7 +73,9 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 - 最多等待30分钟，包含生图、修订与验收；超时或工具失败会抛出异常。退出时清理临时交接目录。
 - 同一运行目录只保留一个进程；中断后使用新目录重跑。生成图片留在运行目录中。
 
-两套英文模板采用自然段与列表，先放 `<STYLE>`，再放 `<METHOD>`。参考图补充视觉细节，明确的 `<STYLE>` 要求优先。
+两套英文模板采用自然段与列表，先放 `<STYLE>`，再放 `<METHOD>`，有细节时追加 `<DETAIL>`。
+
+参考图补充视觉细节，明确的风格与细节要求优先。
 
 两套模板统一包含细节、质量与最大努力要求，适用于所有生图Provider。Codex桥接原样传递提示词。
 
@@ -94,7 +96,50 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 --style_file outputs/run-001/style.txt
 ```
 
-两套模板均保持方法原文与风格原文。图像验收核对实际风格文件，设计规则变更时再对照 `design.md` 审查覆盖。
+模板保留各输入原文。图像验收核对实际风格及细节文件，设计规则变更时再对照 `design.md` 审查覆盖。
+
+### 绘图细节
+
+`--detail_file` 接收本次绘图安排，按UTF-8读取，支持Markdown。省略或空白时不加入细节区块。
+
+已有具体安排时，可在方法生图命令中增加此参数：
+
+```bash
+--detail_file outputs/run-001/detail.txt
+```
+
+项目不自动加载默认细节文件。导入已有定稿图片时，不能同时传入 `--detail_file`。
+
+**细节用途：**
+
+- 保存应保留的具体特征，以及下一版希望实现的改进目标。
+- 每轮传入完整有效要求，替换过时决定，避免累积冲突。
+- 科学含义遵循方法；明确局部覆盖优先于一般风格默认项。
+- 未写明的部分由模型按方法与风格安排。
+
+以下仅展示文件写法，实际条目由本次方法和画面决定：
+
+```markdown
+# Drawing Details
+
+## Preserve
+
+- Place the input examples beside the encoder.
+- Show the memory bank as three aligned stacks below the main process.
+
+## Improve
+
+- Route the feedback loop above the main process and attach its endpoint to the encoder.
+- Increase spacing around output labels while keeping each label near its branch.
+```
+
+Agent可查看满意的候选图，提炼上述要求，再按文字重新生成。候选图不会自动作为图片输入。
+
+用户指定的风格参考图仍按原参数传入。生成后核对保留项与改进目标，按需继续调整。
+
+图内用结构表达机制，保留必要短标签；整图标题与解释性文字移到图外caption或正文。
+
+Agent验收时移除模块名后的括号解释等文字补丁，将其技术含义转为图形。候选图提炼也遵循此规则。
 
 ### 参数
 

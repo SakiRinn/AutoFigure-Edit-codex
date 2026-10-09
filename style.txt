@@ -23,7 +23,7 @@ Choose details according to the question the figure should answer:
   - Match symbols to the objects shown; leave derivations to the paper.
   - Preserve meaning when shortening labels or simplifying structure.
 - Repeat elements only for a semantic purpose, such as successive iterations.
-  - Merge redundant titles.
+  - Merge redundant module labels.
   - Use justified omissions for repetitive structures while preserving their relationships.
 
 ### Composition
@@ -43,7 +43,7 @@ Choose the layout from the method; explicit composition requirements take priori
 
 Keep the composition full, balanced, and spacious enough to read:
 
-- Place local explanations and legends near their content, within the main composition.
+- Place structural detail views and concise legends near their objects, within the composition.
 - Use roughly even spacing among peers and coordinate neighboring regions' density.
   - Relieve crowding and rearrange or tighten unusually empty regions.
   - Allow modest density differences when justified by the content.
@@ -162,7 +162,7 @@ Use the method's terminology and keep text readable at the final display size:
 
 Choose emphasis according to the actual content and visual hierarchy:
 
-- Use bold selectively for justified priorities, such as a main title or central mechanism.
+- Use bold selectively for justified priorities, such as a central mechanism label.
 - Avoid uniformly bold figures, paragraphs, or labels.
 - Preserve bold mathematical symbols when the weight carries meaning.
 - Follow explicit emphasis requests; otherwise choose emphasis from the actual composition.
@@ -174,9 +174,29 @@ Keep text accurate, complete, and close to its object:
 - Preserve mathematical symbols, subscripts, and operation relationships.
   - Distinguish similar-looking characters that represent different variables.
   - Keep notation consistent with the method.
-- Use short labels and place longer necessary explanations near their modules.
+- Use short labels; place longer explanations in the external caption or paper text.
 - Rearrange crowded areas instead of repeatedly shrinking text.
 - Keep paper captions outside the figure; retain necessary module names and subfigure markers.
+
+## Visual explanation
+
+Explain mechanisms through the drawing:
+
+- Use shapes, connections, operators, or local detail views to show how a component works.
+- Replace explanatory text patches with a visual representation of the intended relationship.
+- Do not append parenthetical explanations or descriptive clauses to module names.
+- Keep technical names and notation accurate; parentheses within a required name remain valid.
+
+Keep explanatory prose outside the figure:
+
+- Do not add an overall figure title, headline, subtitle, summary, or caption-like paragraph.
+- Reserve figure titles and longer explanations for the external caption or paper text.
+- Keep only short object labels, mathematical notation, data ticks, and concise legend keys.
+- Retain source text when it is itself the depicted data, such as an input query or sample.
+
+A label identifies an object. Use visual structure to explain its role or internal mechanism.
+
+If a detail needs explanation, improve the diagram before adding words.
 
 ## Data displays
 
@@ -223,11 +243,20 @@ Verify content before accepting appearance:
 Inspect the whole figure and its smallest labels at the intended display size:
 
 - Check text hierarchy, font appearance, regular body weight, and justified emphasis.
-- Keep full paper captions out of the image.
+- Remove overall titles and caption-like prose; keep captions outside the image.
 - Check every major module's path, routing, crossings, and obstructions.
   - Remove unnecessary short staircase turns; verify local turns and feedback paths.
   - Check shared segments and arrowheads for clear origins, destinations, and branch meanings.
 - Check balanced density, roughly even spacing, and modest local density differences.
+
+### Text discipline
+
+Inspect every text item before accepting the figure:
+
+- Remove parenthetical explanations and prose attached to module names as visual fixes.
+- Express their technical meaning through structure, connections, or local detail views.
+- Remove overall titles, subtitles, narrative callouts, and summary paragraphs.
+- Keep necessary identifiers and depicted source data; move other prose to the external caption.
 
 ### Visual consistency
 

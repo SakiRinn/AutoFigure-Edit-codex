@@ -1312,6 +1312,7 @@ def generate_figure_from_method(
     image_size: str = GEMINI_DEFAULT_IMAGE_SIZE,
     enable_upscale: bool = True,
     style_text: Optional[str] = None,
+    detail_text: Optional[str] = None,
 ) -> str:
     """
     使用 LLM 生成学术风格图片
@@ -1319,6 +1320,7 @@ def generate_figure_from_method(
     Args:
         method_text: Paper method 文本内容
         style_text: Markdown风格要求；None时读取主程序同目录的style.txt
+        detail_text: 可选Markdown绘图细节；省略或空白时不加入提示
         output_path: 输出图片路径
         api_key: API Key
         model: 生图模型名称
@@ -1361,7 +1363,7 @@ def generate_figure_from_method(
 
     prompt = """Create a clear scientific figure at the standard of a spotlight-level paper in a top-tier conference or journal. Explain the method in <METHOD> and apply the visual requirements in <STYLE>.
 
-Use the two sections according to their roles:
+Use the input sections according to their roles:
 
 - Treat <METHOD> as the source of scientific content. Preserve the stated components, their roles, and the direction and meaning of their connections.
 - Keep terminology, mathematical notation, and supplied data accurate. Include only technical claims and results supported by the method.
@@ -1374,6 +1376,16 @@ Design the composition around the method:
 - Use concise labels and meaningful visual structure. Let the content determine the arrangement and visual emphasis, subject to explicit requirements in <STYLE>.
 - Read Markdown headings and lists as input organization. Keep section tags and instruction text out of the figure.
 """
+    has_detail = detail_text is not None and bool(detail_text.strip())
+    if has_detail:
+        prompt += """
+Apply the drawing decisions in <DETAIL>:
+
+- Treat these as concrete requirements for the new figure, including details to preserve and target improvements.
+- Follow the specified arrangements while preserving the scientific content in <METHOD>.
+- Use <DETAIL> to resolve specific visual choices that <STYLE> leaves open. Explicit local overrides in <DETAIL> take priority over general style defaults.
+- Choose unspecified details according to the method and style. The description must stand on its own; do not assume access to an earlier image.
+"""
     if use_reference_image:
         prompt += """
 Use the supplied reference image as a visual style guide:
@@ -1383,6 +1395,8 @@ Use the supplied reference image as a visual style guide:
 - Do not copy unrelated labels, technical content, or decorative elements from the reference.
 - Follow explicit requirements in <STYLE> wherever they differ from the reference. Use the reference to guide visual details that <STYLE> leaves open.
 """
+        if has_detail:
+            prompt += "\nExplicit drawing decisions in <DETAIL> also take priority over the reference image.\n"
     prompt += f"""
 Return the finished figure.
 
@@ -1392,9 +1406,16 @@ Return the finished figure.
 
 <METHOD>
 {method_text}
-</METHOD>
+</METHOD>"""
+    if has_detail:
+        prompt += f"""
 
-This image generation task is extremely difficult and requires an exceptionally high level of detail and quality; think with maximum effort."""
+<DETAIL>
+{detail_text}
+</DETAIL>"""
+    prompt += """
+
+This image generation task is quite difficult and requires an exceptionally refined, extremely high-quality result; think with maximum effort."""
 
     print(f"发送请求到: {base_url}")
 
@@ -3236,6 +3257,7 @@ def method_to_svg(
     enable_upscale: bool = True,
     input_figure_path: Optional[str] = None,
     style_text: Optional[str] = None,
+    detail_text: Optional[str] = None,
 ) -> dict:
     """
     完整流程：Paper Method → SVG with Icons
@@ -3243,6 +3265,7 @@ def method_to_svg(
     Args:
         method_text: Paper method 文本内容
         style_text: Markdown风格要求；None时使用项目默认style.txt
+        detail_text: 可选绘图细节，按全文传入第一阶段
         output_dir: 输出目录
         api_key: API Key
         base_url: API base URL
@@ -3359,6 +3382,7 @@ def method_to_svg(
         generate_figure_from_method(
             method_text=method_text,
             style_text=style_text,
+            detail_text=detail_text,
             output_path=str(figure_path),
             api_key=image_api_key,
             model=image_gen_model,
@@ -3617,6 +3641,11 @@ if __name__ == "__main__":
         help="UTF-8风格文件（可使用Markdown）；省略时加载主程序同目录的style.txt",
     )
 
+    parser.add_argument(
+        "--detail_file", default=None,
+        help="可选UTF-8绘图细节文件（可使用Markdown）；省略或空白时不限定细节",
+    )
+
     # 输出参数
     parser.add_argument("--output_dir", default="./output", help="输出目录（默认: ./output）")
 
@@ -3752,6 +3781,11 @@ if __name__ == "__main__":
 
     if args.style_file and args.input_figure_path:
         parser.error("--style_file 不能与 --input_figure_path 同时使用")
+    if args.detail_file and args.input_figure_path:
+        parser.error("--detail_file 不能与 --input_figure_path 同时使用")
+    detail_text = None
+    if args.detail_file is not None:
+        detail_text = Path(args.detail_file).read_text(encoding="utf-8")
     style_text = None
     if args.style_file is not None:
         style_text = Path(args.style_file).read_text(encoding="utf-8")
@@ -3760,6 +3794,7 @@ if __name__ == "__main__":
     result = method_to_svg(
         method_text=method_text,
         style_text=style_text,
+        detail_text=detail_text,
         output_dir=args.output_dir,
         api_key=args.api_key,
         base_url=args.base_url,

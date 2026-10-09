@@ -41,15 +41,19 @@ codex login status
 方法说明：……
 ```
 
-`method.txt` 保存论文方法内容，绘图风格使用独立的 `style.txt` 。两个文件按UTF-8读取，可用Markdown组织。
+`method.txt` 保存论文方法内容，绘图风格使用独立的 `style.txt` 。输入文件按UTF-8读取，可用Markdown组织。
 
 CLI默认读取 `autofigure2.py` 同目录的 [style.txt](style.txt)，路径不依赖当前工作目录。
 
 定制风格时，复制默认文件并调整条目，通过 `--style_file 文件路径` 传入；文件全文替换默认风格。
 
-英文模板用 `<METHOD>` 和 `<STYLE>` 分别包裹输入。参考图提供视觉风格，明确风格要求优先。
+英文模板先放 `<STYLE>`，再放 `<METHOD>`。可选 `--detail_file 文件路径` 将具体安排加入 `<DETAIL>`。
 
-Skill读取实际使用的风格文件，生成后核对方法表达与风格要求。
+细节省略或空白时不增加区块。每轮文件保存完整有效要求，可从候选图提炼保留项与改进目标，再按文字重新生成。
+
+参考图提供视觉风格，明确的风格与细节要求优先。
+
+Skill读取实际使用的风格文件，生成后核对方法表达，并检查风格与细节要求。
 
 由当前Codex Agent启动以下命令，并按[生图交接](.codex/skills/autofigure-edit-codex/references/imagegen.md)处理请求：
 

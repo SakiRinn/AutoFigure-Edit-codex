@@ -5,7 +5,7 @@
 项目以 `16f3749` 为上游基线。Codex Provider位于统一调用边界，后处理由Skill在主程序退出后执行。主要文件按职责分布如下：
 
 - 上游入口与模型调用。
-  - `autofigure2.py` 保留阶段算法，使用英文模板与 `<METHOD>` / `<STYLE>` 分隔输入；根目录 `style.txt` 保存默认风格，`--style_file` 可完整替换。
+  - `autofigure2.py` 保留阶段算法，使用英文模板与 `<METHOD>` / `<STYLE>` 分隔输入；根目录 `style.txt` 保存默认风格，`--style_file` 可完整替换，`--detail_file` 可追加本次具体安排。
   - `codex_bridge.py` 用SDK返回文本，生图通过当前会话内置image-gen交接后返回PIL图片。
 - 绘图Skill与后处理。
   - [Skill入口](.codex/skills/autofigure-edit-codex/SKILL.md)负责材料准备、CLI运行及后处理，细则见Skill内的 `references/postprocess.md`。
@@ -27,13 +27,14 @@
 - 本机Skill安装以 `~/.agents/skills` 为实体目录，在 `~/.codex/skills` 创建指向同一Skill的符号链接；后续同步只更新实体目录。
 - Python代码的import统一放在文件开头，新增或修改代码时采用顶层导入。
 - 一次性验证脚本与测试文件用毕删除，不纳入Git提交。
-- 生图方法与风格分别写入 `method.txt` 和 `style.txt`，均可使用Markdown；具体布局和视觉细节由生图模型安排。
+- 生图方法与风格分别写入 `method.txt` 和 `style.txt`，均可使用Markdown；`detail.txt` 保存已定绘图安排，未限定的布局和视觉细节由模型安排。
   - 保留异色要求；用户未指定时，外层Agent不预先固定分区位置、空间分配或加粗名单，生成后按实际画面检查。
 - 科研图默认采用rich pastel配色，保持专业、清晰，色温不限。
   - 背景与内部元素分别配色；图标与局部背景、箭头与文字分别使用不同色相，标签沿用文字配色。
   - 图标采用[lineal color](.codex/skills/autofigure-edit-codex/assets/lineal_color.png)或[restrained flat](.codex/skills/autofigure-edit-codex/assets/restrained_flat.png)特征，也可融合。
   - 图标用于概括对象，具体结构优先使用形状示意；卷积核、多维参数及3D算子按内容保留立体表达。
 - 字体允许区别于生成图。中文默认华文宋体（STSong），缺失时回退到新宋体（NSimSun）；英文默认Times New Roman；生图与可编辑转换沿用此约定，保留文字内容与层级，按可读性调整排版。
+- 科研图用图形表达机制，禁止模块名后的括号解释等文字补丁；整图标题与caption式叙述放在图外，保留必要短标签、符号及作为数据展示的原文。
 - 整图保留直角，矩形与折线禁止圆角化。箭身可为完整弧线；天然圆形图元可保留。
 - 编辑单元按语义确定。整片多色散点合为一个叶对象；同一段落的多行合为一个原生文本框，标题与正文各自独立。标题附带的括号限定语仍归入标题文本框，各单元内部保留混合字号和粗细。
 - 定稿生成图是外观依据，SVG/PPTX除字体替换与明确缺陷外一比一复刻。风格调整在生图阶段完成，合并只改变编辑单元；简单几何组成的图标转为整体矢量，复杂图标保留原图局部位图；须逐个记录结构依据，禁止整批默认保留位图。每个图标在SVG与PPT中各为一个对象，禁止拆成密集小对象或用分组冒充压缩；密集样本分布仍按独立压缩规则处理。纯色整页底层使用PPT页面背景。局部背景面板保留完整几何形状，前景色块独立叠放；白色覆盖层保留为原生对象，底层不得因遮挡而挖孔或切碎。主流程适配以文件树总览为准。Codex在既有SVG响应或独立工作副本中修复明确生图缺陷；后处理全部置于Skill，教程采用workplace-docs规范，PPTX不含任何备注文字。
@@ -41,9 +42,9 @@
 ## 项目状态
 
 - 主链路以 `16f3749` 为上游基线，阶段逻辑冻结。
-  - `autofigure2.py` 统一入口调用 `codex_bridge.call_text/call_image`。两套英文生图模板按参考图有无分支，先放 `<STYLE>` 再放 `<METHOD>`，风格要求优先。所有Provider共用末尾的细节、质量与最大努力要求，Codex桥接原样传递提示词。12组组合检查通过，见 `outputs/style-input-verification/prompt-universal-checks.json`。
+  - `autofigure2.py` 统一入口调用 `codex_bridge.call_text/call_image`。两套英文生图模板按参考图有无分支，依次放 `<STYLE>`、`<METHOD>`，非空细节追加 `<DETAIL>`。方法事实优先，明确局部细节可覆盖一般风格默认项。所有Provider共用末尾的细节、质量与最大努力要求，Codex桥接原样传递提示词。可选细节48组组合及CLI传递检查通过，见 `outputs/detail-input-verification/checks.json`。
   - Provider固定 `openai-codex==0.156.1`。文本SDK任务隔离项目指令；生图通过 `AUTOFIGURE_IMAGE_REQUEST_DIR` 交接，30分钟超时，返回或异常均清理。此前13项交接检查与同进程真实回传通过。
-  - Skill分别准备方法与风格，常规绘图读取实际风格文件；候选图验收定稿后才回传。默认风格经独立subagent逐项审查通过。参数与交接7组检查及真实CLI帮助验证通过，证据见 `outputs/style-input-verification/`；本轮未调用真实生图。
+  - Skill分别准备方法与风格，按需从候选图提炼完整细节文件，以文字重新生成；常规绘图读取实际输入文件；验收清除图内大标题与解释性文字补丁，候选图定稿后才回传。默认风格经独立subagent逐项审查通过。参数与交接7组检查及真实CLI帮助验证通过，证据见 `outputs/style-input-verification/`；本轮未调用真实生图。
 - 后处理使用Skill内的显式对象计划。
   - `compact_svg.py` 压缩SVG编辑单元；`scripts/exporter/` 导出原生形状与绑定连接符，保留语义文本框，支持单对象SVG图标、局部图片、原生表格及带XLSX的图表。使用接口见 `references/exporter.md`。
   - 导出器重新打开实际PPTX检查对象与资源，再导入渲染。报告的结构检查与人工外观、编辑验收分开；Artifact预览对自定义连接符、二次路径与自定义虚线有已复现的局限，`previewWarnings` 要求另用PPTX渲染器核验；输入不支持的样式须按参考规范化，禁止用全页图片替代交付。
@@ -65,7 +66,7 @@
   2. 使用 `/usr/bin/python3` 运行系统skill-creator的 `quick_validate.py`，该解释器具备PyYAML。
 - 运行本机真实示例。
   1. 安装项目依赖并在本机完成 `codex login`。加载本地 `.env`，本机SAM3目录通过 `PYTHONPATH="$PWD/sam3"` 提供；Cairo通过已安装的Homebrew库路径加载。
-  2. 准备 `method.txt` 并读取实际 `style.txt`；自定义风格用 `--style_file` 传入，省略时加载主程序同目录默认文件。设置 `AUTOFIGURE_IMAGE_REQUEST_DIR` 到运行目录，启动 `.venv/bin/python -u autofigure2.py --provider codex`，显式设置优化次数。
+  2. 准备 `method.txt` 并读取实际 `style.txt`；自定义风格用 `--style_file` 传入，省略时加载主程序同目录默认文件；具体安排用 `--detail_file` 传入，省略或空白时不加入细节。设置 `AUTOFIGURE_IMAGE_REQUEST_DIR` 到运行目录，启动 `.venv/bin/python -u autofigure2.py --provider codex`，显式设置优化次数。
   3. 日志出现 `Codex image request:` 后读取请求并调用内置image-gen。查看候选图、逐项验收并定稿后才原子回传绝对路径；同一进程继续，验收占用既有30分钟等待时间。
   4. 主程序退出后保留原始SVG，执行Skill中的压缩与PPTX导出。比较叶对象数，逐一核验语义文本框与多色密集区域，渲染后检查图形与文字。
 - 验证PPTX文件。
