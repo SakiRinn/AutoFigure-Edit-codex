@@ -51,11 +51,11 @@ description: >-
 
 **风格传入：**
 
-- 默认采用rich pastel配色，图标使用lineal color或restrained flat特征，也可融合。
+- 默认采用rich pastel配色。图标必须落实选定风格；用户未另行指定时，采用lineal color或restrained flat特征，也可协调融合。按 [生图设计](references/design.md#图标样式) 逐个检查图标的实际外观。
 - 生图材料写明字体要求，可编辑转换沿用相同约定。
   - 中文默认华文宋体（STSong），缺失时回退到新宋体（NSimSun）。
   - 英文默认Times New Roman。
-- 结构关系优先用形状示意，图标用于概括对象；适用要求按 [生图设计](references/design.md) 写入方法文本。
+- 结构关系优先用形状示意，图标用于概括对象。少弯折是核心走线要求，布局保持充实且疏密均匀；适用规则按 [生图设计](references/design.md) 写入方法文本。
 
 默认使用方法文本生图，图片是否传入由用户明确要求决定。
 
