@@ -3,7 +3,9 @@
 ## 安装与启动
 
 本发行版以 `16f3749` 为上游基线，生图由当前会话内置image-gen完成，文本请求使用Codex SDK。\
-原版阶段顺序和提示保持冻结；完整绘图的材料准备与PPTX后处理由入口Skill负责。首次使用按以下顺序准备：
+原版阶段顺序保持冻结，生图模板仅删除 `cute characters` 要求，其余提示保持原样。
+
+完整绘图的材料准备与PPTX后处理由入口Skill负责。首次使用按以下顺序准备：
 
 1. 按 [上游README](README.md) 安装Python依赖和本地SAM3，准备RMBG权重或访问凭据。
    - `requirements.txt` 固定 `openai-codex==0.156.1`，安装时包含配套Codex运行时。
@@ -20,10 +22,10 @@
 4. 在Codex中调用 `autofigure-edit-codex`，提供材料并说明目标风格。
    - 整体采用rich pastel配色，图标使用lineal color或restrained flat特征，也可融合。
    - 图标用于概括对象，具体结构优先用形状示意；适用的3D结构保留立体表达。
-   - 画面组织与风格规则见Skill的[生图设计](.codex/skills/autofigure-edit-codex/references/design.md)。配套图标展示图仅供Agent理解风格；仅在用户明确指定生图参考图时使用 `--reference_image_path`。
-   - Skill将方法事实与用户明确要求写入输入材料，具体布局和视觉细节交给生图模型安排，以新的运行目录启动主程序。
+   - 生图规则见 [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)。用户指定参考图只模仿风格，结构和布局自由变化；配套图标示例仅供Agent阅读。
+   - Skill先写 `method.txt` 初稿，再全文读取 `design.md`，逐项核对并补齐规则，保存核对记录后启动。
 5. 当前Agent用以下命令启动，并按[生图交接](.codex/skills/autofigure-edit-codex/references/imagegen.md)处理请求。
-   - 生图调用等待回传，收到图片后同一Python进程继续。
+   - 生图调用等待回传，Agent查看候选图并逐项验收，定稿回传后同一Python进程继续。
    - 独立终端使用 `--input_figure_path` 导入已有图片，可跳过生图交接。
 
    ```bash
@@ -55,15 +57,17 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 ### 生图调用
 
 设置 `AUTOFIGURE_IMAGE_REQUEST_DIR` 后，Provider在该目录发布独立请求。
-当前Agent读取请求，调用本会话内置image-gen，再原子写入图片路径或原始错误。
+当前Agent读取请求，调用本会话内置image-gen，完成视觉验收后再原子回传定稿图片路径。
+
+验收未通过时先修订并复查，无法通过时回传具体原因；工具失败保留原始错误。
 
 **交接要求：**
 
 - 日志出现 `Codex image request:` 后及时处理，完整步骤见[生图交接](.codex/skills/autofigure-edit-codex/references/imagegen.md)。
-- 最多等待30分钟，超时或工具失败会抛出异常。返回、异常或Ctrl+C均清理本次临时交接目录。
+- 最多等待30分钟，包含生图、修订与验收；超时或工具失败会抛出异常。退出时清理临时交接目录。
 - 同一运行目录只保留一个进程；中断后使用新目录重跑。生成图片留在运行目录中。
 
-原版prompt保持原文，Provider追加一句高难度、高精细度与最大努力提示，并保留尺寸要求。
+无参考图模板仅删除 ` with cute characters`，参考图模板完整保留。Provider继续追加最大努力说明与尺寸要求。
 
 ### 参数
 
@@ -113,7 +117,9 @@ CLI可通过帮助命令核对参数：
 .venv/bin/python autofigure2.py --help
 ```
 
-主链路相对上游的差异仅涉及Codex Provider接入。后续同步上游时逐项检查差异，提示内容与阶段算法按上游更新；对象压缩与PPTX导出继续保留在Skill中。
+主链路相对上游仅增加Codex Provider接入，并删除无参考图模板中的 ` with cute characters`。
+
+同步上游时保留这两处适配，逐项核对差异；对象压缩与PPTX导出继续保留在Skill中。
 
 本机完整示例位于 `outputs/pii-flywheel-003/`，输入来自PII分类数据飞轮项目。运行完成21个局部图标的分割与抠图，执行一次SVG优化。该历史示例曾在后处理重绘图标，未满足后来新增的一比一复刻要求；它用于验证编辑单元与导出能力。示例合并26组语义文本，将整片多色散点压缩为一个对象。具体计数和检查结果保存在运行目录的 `verification.json`；`run.log` 记录原始链路执行。该目录不随代码提交。
 
@@ -135,7 +141,7 @@ webide使用已有GPU环境；运行本版前须同步桥接代码和Skill。\
    set +a
    ```
 
-3. 由Codex执行以下命令，并处理远端发布的生图请求。GPU运行使用远端启动器 `/root/.local/share/autofigure-runtime/run_autofigure.py`，其余CLI参数沿用前文。启动器在进程内为SAM3处理器设置官方示例采用的CUDA BF16 autocast，再把检测框与置信度转为NumPy兼容的FP32，此次类型转换不增加舍入；SAM3推理仍为BF16，RMBG继续使用原有精度。启动器位于项目外，仓库文件、上游阶段顺序和提示保持冻结。项目环境继承Conda的CUDA版PyTorch，其余项目依赖装在 `.venv`；SAM3源码位于 `/root/sam3`。SAM3与RMBG权重保存在 `/root/.cache/huggingface/hub`。
+3. 由Codex执行以下命令，并处理远端发布的生图请求。GPU运行使用远端启动器 `/root/.local/share/autofigure-runtime/run_autofigure.py`，其余CLI参数沿用前文。启动器在进程内为SAM3处理器设置官方示例采用的CUDA BF16 autocast，再把检测框与置信度转为NumPy兼容的FP32，此次类型转换不增加舍入；SAM3推理仍为BF16，RMBG继续使用原有精度。启动器位于项目外，上游阶段顺序保持冻结，提示适配沿用前文约定。项目环境继承Conda的CUDA版PyTorch，其余项目依赖装在 `.venv`；SAM3源码位于 `/root/sam3`。SAM3与RMBG权重保存在 `/root/.cache/huggingface/hub`。
 
    ```bash
    export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
@@ -148,13 +154,13 @@ webide使用已有GPU环境；运行本版前须同步桥接代码和Skill。\
    ```
 
 4. 主程序保留在持久会话中，同一输出目录只运行一个进程，按[远端交接](.codex/skills/autofigure-edit-codex/references/imagegen.md#远端主机)处理请求。
-   - 将生成图片传回远端，响应使用远端绝对路径；SDK继续处理文本请求。
+   - 先验收定稿，再将图片传回远端，响应使用远端绝对路径；SDK继续处理文本请求。
    - 远端Skill安装目录为 `/root/.codex/skills/` 和 `/root/.agents/skills/`。
 5. 主流程完成后运行Skill后处理，PPTX使用 `/root/.local/share/autofigure-pptx-runtime` 中的Artifact Tool。`RUNTIME_NODE` 等变量已由 `.env.webide-runtime` 设置；使用现有安装，避免在该目录执行 `npm prune` 删除从官方包复制的依赖。
 6. 本次字体位于 `/root/.local/share/fonts/autofigure/`，Roboto采用静态Regular与Bold文件；变量字体曾导致Cairo正文错误加粗，换成静态文件并刷新字体缓存后正常。用远端Presentations Skill重新导入最终PPTX并渲染，再核对对象与备注。示例运行目录使用 `outputs/webide-demo-001/`，模型请求和各阶段日志保存在该目录。
 
 `.env.webide-runtime` 记录当前主机路径，和密钥配置一样留在远端本地。备份版本位于项目同级目录及 `/root/.local/share/autofigure-install-backups/20260920/`，不参与Skill扫描。
 
-历史示例已跑通生图、GPU分割、SVG优化与PPTX导出。PPTX有7个原生文本框，整片散点保留为一张局部图片，页面背景不占对象；备注为空。历史部署记录包含原始链路5项测试与Skill后处理22项测试。此前已验证SDK 0.156.1的CLI登录状态、CUDA可用性与GPU启动器帮助命令。当前版本已同步远端仓库及两套Skill，Linux图片回传、超时清理与GPU启动器帮助检查通过；本次未重跑远端真实生图至PPTX。图形轮廓和文本布局已对照渲染；原图细微纹理与原生填充、字体抗锯齿仍有差异，本示例验证远端全链路运行，未达到逐像素复刻。
+历史示例已跑通生图、GPU分割、SVG优化与PPTX导出。PPTX有7个原生文本框，整片散点保留为一张局部图片，页面背景不占对象；备注为空。历史部署记录包含原始链路5项测试与Skill后处理22项测试。此前已验证SDK 0.156.1的CLI登录状态、CUDA可用性与GPU启动器帮助命令。远端已部署图片交接与字体规则，Linux图片回传、超时清理与GPU启动器帮助检查通过；本次提示核对与生图验收更新尚未同步远端，未重跑远端真实生图至PPTX。图形轮廓和文本布局已对照渲染；原图细微纹理与原生填充、字体抗锯齿仍有差异，本示例验证远端全链路运行，未达到逐像素复刻。
 
 远端字体清单尚未检出STSong、NSimSun或Times New Roman。按当前字体规则，正式导出前须补齐可用字体。

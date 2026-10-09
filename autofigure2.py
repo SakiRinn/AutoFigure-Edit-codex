@@ -1383,7 +1383,7 @@ Below is the method section of the paper:
 
 {method_text}
 
-The figure should be engaging and using academic journal style with cute characters."""
+The figure should be engaging and using academic journal style."""
 
     print(f"发送请求到: {base_url}")
 
