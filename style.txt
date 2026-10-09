@@ -1,0 +1,255 @@
+# Scientific Figure Style
+
+Apply all relevant requirements below. Explicit task requirements override defaults.
+
+## Content organization
+
+Let the method determine the modules and relationships:
+
+- Explain the central mechanism and preserve its actual inputs and outputs.
+- Follow the method's reading order and use spatial regions to show module hierarchy.
+- Connect branches and loops according to their real direction and meaning.
+- Keep text near its object and reserve space for labels and unobstructed connections.
+
+### Abstraction
+
+Choose details according to the question the figure should answer:
+
+- Summarize standard modules as named blocks; expand the central mechanism as needed.
+- Express actions through visual structure and use concise keywords inside modules.
+  - Preserve complete sentences when needed, such as example queries or sample text.
+  - Give these examples dedicated areas; avoid filling boxes with paragraphs from the paper.
+- Keep only mathematical relationships needed to explain the mechanism.
+  - Match symbols to the objects shown; leave derivations to the paper.
+  - Preserve meaning when shortening labels or simplifying structure.
+- Repeat elements only for a semantic purpose, such as successive iterations.
+  - Merge redundant titles.
+  - Use justified omissions for repetitive structures while preserving their relationships.
+
+### Composition
+
+Choose the layout from the method; explicit composition requirements take priority:
+
+- Make both the overall reading path and local details easy to follow.
+  - A sequence may use horizontal flow; feedback may use a loop. These are examples.
+  - Align parallel branches at corresponding stages and identify inputs at each merge.
+- Keep major modules in the overview; expand important internal mechanisms when useful.
+  - Connect each detail view to its source module.
+  - Reuse the module's name and color in its detail view.
+- Use spacing and alignment to reveal hierarchy and leave connections room.
+- Allocate area by explanatory importance; the central mechanism may need more space.
+
+### Canvas use
+
+Keep the composition full, balanced, and spacious enough to read:
+
+- Place local explanations and legends near their content, within the main composition.
+- Use roughly even spacing among peers and coordinate neighboring regions' density.
+  - Relieve crowding and rearrange or tighten unusually empty regions.
+  - Allow modest density differences when justified by the content.
+- Fit the canvas to the content while preserving mechanisms and reading space.
+- Respect any requested aspect ratio; rearrange content rather than distort proportions.
+
+## Connections
+
+Give each line style a stable meaning and land endpoints on their intended objects.
+
+### Routing
+
+Make every major module's general flow clear:
+
+- Choose directions from the mechanism and reading order.
+  - Different major modules may have different directions.
+  - Keep meaningful local turns and feedback paths.
+- Minimize bends by adjusting node positions and connection ports.
+  - Prefer straight lines for relationships that can be connected clearly.
+  - Remove short staircase detours that only compensate for slight endpoint misalignment.
+- Keep necessary offsets and turns clear.
+  - A straight diagonal is suitable when endpoints must remain offset.
+  - Keep bends for obstacles, branches, or feedback; judge purpose at the actual drawing scale.
+- Share segments or arrowheads only for same-direction arrows with clear, compatible meanings.
+  - Preserve identifiable origins, destinations, branch points, and directions.
+  - Shared lines must not falsely imply that data have merged.
+
+### Semantics
+
+Make the relationship represented by every connection clear:
+
+- Distinguish detail-view links from data-flow arrows.
+- Distinguish auxiliary relations through line styles or short labels; color is supplemental.
+  - Solid forward flow and dashed updates are examples, not fixed assignments.
+  - Derive meanings from the method; avoid ambiguous reuse of the same line style.
+- Distinguish crossings from junctions; mark junctions only at real connections.
+- Put operators at their actual operation and make their inputs clear.
+  - Use a plus sign for addition when appropriate.
+  - Label concatenation with its actual meaning.
+
+## Visual representations
+
+Use structural diagrams for internal organization and icons to identify objects or functions.
+
+### Shapes
+
+Choose representations according to their technical meaning:
+
+- Use icons where they summarize an object, such as a user or tool.
+  - Avoid decorating every step with an icon.
+  - Show structure through shapes, such as grids for matrices or stacks for tensor dimensions.
+- Preserve depth where it explains spatial or multidimensional relationships.
+  - Convolution kernels, multidimensional parameters, and 3D operators may remain volumetric.
+  - Flat styling applies to icons; retain technical 3D structures and required photographs.
+- Represent equivalent structures consistently; changes in dimensionality need a content reason.
+  - Logical steps may use 2D blocks; volume data may use 3D stacks.
+  - Keep related 3D viewpoints consistent and prevent shading from hiding important outlines.
+- Give technical shapes and panel boundaries stable meanings.
+  - Cylinders may denote storage; grids may denote matrices; operations remain process nodes.
+  - Dashed panels may denote logical stages when that meaning fits the method.
+
+Use square corners for rectangular panels and cards, and sharp corners for bent lines.
+
+Natural circles and smooth, continuous curved arrows are allowed where appropriate.
+
+### Icons
+
+Use lineal color or restrained flat icons, or a coherent combination:
+
+- Lineal color uses clear outlines and simple colored fills.
+- Restrained flat uses simple color shapes and limited shading, with outlines as needed.
+- Coordinate outline strength, color layers, and depth across every icon, including mixed styles.
+- Preserve meaningful state marks, such as a lock that denotes frozen parameters.
+
+Check each icon against the chosen visual language:
+
+- Avoid photorealistic rendering, strong material highlights, and toy-like 3D icons.
+- Preserve technical 3D diagrams and real photographs required by the content.
+- Choose each icon's form from its meaning and apply the overall palette and font rules.
+- Correct individual deviations and recheck the consistency of the whole figure.
+
+### Color
+
+Use rich pastel colors with a soft base, substantial color, and clear layers.
+
+Color temperature is unrestricted. Choose exact colors to suit the figure:
+
+- Give the page background, local panels, and internal elements distinct color roles.
+  - Keep backgrounds softer than their contents and retain enough foreground color.
+  - Keep text and connections clear against panel fills.
+- Use different hues for icons and their local backgrounds.
+- Use different hues for arrows and text; arrow labels follow the text palette.
+- Apply these relationships to structural diagrams as well as icons.
+
+Keep color meanings stable across regions:
+
+- Match colors for the same object type or state; differences need a semantic reason.
+- Distinguish states such as trainable and frozen modules when relevant.
+  - Assign warm or cool colors according to this figure's meaning.
+  - Use labels to support state recognition.
+- Concentrate stronger accents on important mechanisms or outputs.
+  - Avoid making every module compete equally for attention.
+  - Keep only the legend information needed to explain colors.
+- Support key categories with labels or shapes; preserve main relationships in grayscale.
+
+## Typography
+
+Use the method's terminology and keep text readable at the final display size:
+
+- Use Times New Roman for English.
+- Use STSong for Chinese, with NSimSun as the fallback.
+- Keep typography consistent for equivalent text.
+- Keep ordinary text at regular weight; establish hierarchy through size and position first.
+
+### Emphasis
+
+Choose emphasis according to the actual content and visual hierarchy:
+
+- Use bold selectively for justified priorities, such as a main title or central mechanism.
+- Avoid uniformly bold figures, paragraphs, or labels.
+- Preserve bold mathematical symbols when the weight carries meaning.
+- Follow explicit emphasis requests; otherwise choose emphasis from the actual composition.
+
+### Placement and notation
+
+Keep text accurate, complete, and close to its object:
+
+- Preserve mathematical symbols, subscripts, and operation relationships.
+  - Distinguish similar-looking characters that represent different variables.
+  - Keep notation consistent with the method.
+- Use short labels and place longer necessary explanations near their modules.
+- Rearrange crowded areas instead of repeatedly shrinking text.
+- Keep paper captions outside the figure; retain necessary module names and subfigure markers.
+
+## Data displays
+
+Distinguish measured data from conceptual illustrations before choosing the visual form:
+
+- Preserve real values and series assignments; include necessary axes, units, and ranges.
+- Identify conceptual illustrations as such; do not invent experimental results.
+- Choose charts for the comparison, such as bars for categories or lines for continuous changes.
+- Make graphical sizes correspond to values.
+
+Keep scales readable and reading aids unobtrusive:
+
+- Order color scales by magnitude or sign and retain necessary ticks.
+- Use comparable scales for the same metric across charts and state each chart's range.
+- Keep grids beneath the data and visually weaker than it.
+- Keep legends away from important points; name series nearby when clear.
+
+Apply rich pastel styling to data regions while preserving accurate readings.
+
+## Reference images
+
+Use a reference image only when explicitly supplied for this task:
+
+- Borrow visual treatment while deriving content and connections from the method.
+- Choose component count and layout freely to explain the method.
+- Do not infer a need to preserve the reference layout or reproduce it pixel for pixel.
+- Explicit style requirements take priority over conflicting reference characteristics.
+
+## Final image checks
+
+Check the actual image against the method and every applicable requirement.
+
+### Scientific accuracy
+
+Verify content before accepting appearance:
+
+- Check required modules and connections for omissions, additions, or reversed direction.
+- Keep illustrative examples consistent with the method.
+- Check spelling, label completeness, mathematical symbols, and meaningful font weights.
+- For real data, check every value, tick, and series assignment; keep legends clear of key data.
+
+### Readability
+
+Inspect the whole figure and its smallest labels at the intended display size:
+
+- Check text hierarchy, font appearance, regular body weight, and justified emphasis.
+- Keep full paper captions out of the image.
+- Check every major module's path, routing, crossings, and obstructions.
+  - Remove unnecessary short staircase turns; verify local turns and feedback paths.
+  - Check shared segments and arrowheads for clear origins, destinations, and branch meanings.
+- Check balanced density, roughly even spacing, and modest local density differences.
+
+### Visual consistency
+
+Inspect objects individually and in context:
+
+- Check square rectangular corners and sharp bends, with the stated circle and curve exceptions.
+- Check rich pastel layering, icon/background hue differences, and arrow/text hue differences.
+- Check each icon's style and state meaning; preserve structural diagrams' technical information.
+- Remove blurred outlines, distorted objects, accidental editing grids, and watermarks.
+
+### Revisions
+
+Correct identified defects while retaining accurate content and effective design:
+
+1. Identify the region, the defect, and the intended result.
+2. Change what resolves the defect while preserving all unaffected requirements.
+3. Preserve module meanings and connections; verify meaning before shortening labels.
+4. Base structural changes on the method or explicit task requirements.
+5. Recheck the changed region and related content for omissions or new changes.
+6. Recheck all applicable requirements after every revision and retain unresolved issues.
+7. Accept only when method accuracy, readability, and all applicable requirements pass.
+
+Keep the current design when several designs satisfy all requirements.
+
+Avoid repeated redraws based only on personal preference.

@@ -71,7 +71,7 @@ def call_text(contents: list[Any], model: str) -> str:
     return _run_codex(contents, model)
 
 
-def call_image(prompt: str, reference: Image.Image | None, model: str, image_size: str) -> Image.Image:
+def call_image(prompt: str, reference: Image.Image | None, model: str) -> Image.Image:
     """Wait for the current agent's built-in image tool and return its pixels.
 
     Publish tool arguments atomically under AUTOFIGURE_IMAGE_REQUEST_DIR. The
@@ -93,9 +93,7 @@ def call_image(prompt: str, reference: Image.Image | None, model: str, image_siz
     with tempfile.TemporaryDirectory(prefix='request-', dir=root) as workspace:
         request_dir = Path(workspace)
         request = {
-            'prompt': prompt + '\n\nThis image generation task is extremely difficult '
-                      'and requires exceptional precision and quality; think with maximum effort.'
-                      f'\nRequested image size: {image_size}.',
+            'prompt': prompt,
             'transparent_background': False,
         }
         if reference is not None:

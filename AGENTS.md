@@ -5,7 +5,7 @@
 项目以 `16f3749` 为上游基线。Codex Provider位于统一调用边界，后处理由Skill在主程序退出后执行。主要文件按职责分布如下：
 
 - 上游入口与模型调用。
-  - `autofigure2.py` 保留上游算法，增加Codex Provider；无参考图提示仅删除 ` with cute characters`，参考图提示保持原样。
+  - `autofigure2.py` 保留阶段算法，使用英文模板与 `<METHOD>` / `<STYLE>` 分隔输入；根目录 `style.txt` 保存默认风格，`--style_file` 可完整替换。
   - `codex_bridge.py` 用SDK返回文本，生图通过当前会话内置image-gen交接后返回PIL图片。
 - 绘图Skill与后处理。
   - [Skill入口](.codex/skills/autofigure-edit-codex/SKILL.md)负责材料准备、CLI运行及后处理，细则见Skill内的 `references/postprocess.md`。
@@ -27,7 +27,7 @@
 - 本机Skill安装以 `~/.agents/skills` 为实体目录，在 `~/.codex/skills` 创建指向同一Skill的符号链接；后续同步只更新实体目录。
 - Python代码的import统一放在文件开头，新增或修改代码时采用顶层导入。
 - 一次性验证脚本与测试文件用毕删除，不纳入Git提交。
-- 生图输入保留方法事实与明确要求，具体布局和视觉细节由生图模型安排。
+- 生图方法与风格分别写入 `method.txt` 和 `style.txt`，均可使用Markdown；具体布局和视觉细节由生图模型安排。
   - 保留异色要求；用户未指定时，外层Agent不预先固定分区位置、空间分配或加粗名单，生成后按实际画面检查。
 - 科研图默认采用rich pastel配色，保持专业、清晰，色温不限。
   - 背景与内部元素分别配色；图标与局部背景、箭头与文字分别使用不同色相，标签沿用文字配色。
@@ -41,15 +41,15 @@
 ## 项目状态
 
 - 主链路以 `16f3749` 为上游基线，阶段逻辑冻结。
-  - `autofigure2.py` 统一入口调用 `codex_bridge.call_text/call_image`，无参考图提示仅删除 ` with cute characters`，参考图提示不变。
+  - `autofigure2.py` 统一入口调用 `codex_bridge.call_text/call_image`。两套英文生图模板按参考图有无分支，先放 `<STYLE>` 再放 `<METHOD>`，风格要求优先。所有Provider共用末尾的细节、质量与最大努力要求，Codex桥接原样传递提示词。12组组合检查通过，见 `outputs/style-input-verification/prompt-universal-checks.json`。
   - Provider固定 `openai-codex==0.156.1`。文本SDK任务隔离项目指令；生图通过 `AUTOFIGURE_IMAGE_REQUEST_DIR` 交接，30分钟超时，返回或异常均清理。此前13项交接检查与同进程真实回传通过。
-  - Skill要求先写 `method.txt`，再全文重读 `design.md` 逐项核对；候选图验收定稿后才回传重建。新规则尚未重跑真实生图，历史本机记录见 `outputs/local-demo-20261009-001/`。
+  - Skill分别准备方法与风格，常规绘图读取实际风格文件；候选图验收定稿后才回传。默认风格经独立subagent逐项审查通过。参数与交接7组检查及真实CLI帮助验证通过，证据见 `outputs/style-input-verification/`；本轮未调用真实生图。
 - 后处理使用Skill内的显式对象计划。
   - `compact_svg.py` 压缩SVG编辑单元；`scripts/exporter/` 导出原生形状与绑定连接符，保留语义文本框，支持单对象SVG图标、局部图片、原生表格及带XLSX的图表。使用接口见 `references/exporter.md`。
   - 导出器重新打开实际PPTX检查对象与资源，再导入渲染。报告的结构检查与人工外观、编辑验收分开；Artifact预览对自定义连接符、二次路径与自定义虚线有已复现的局限，`previewWarnings` 要求另用PPTX渲染器核验；输入不支持的样式须按参考规范化，禁止用全页图片替代交付。
   - 验证记录在 `outputs/exporter-rewrite/`，覆盖混合文本、原生C/Q曲线、连接符绑定、合并表格及图表数据。移动目标框80px后，绑定连接符宽度增加80px。一次性测试输入不提交，检查日志保留。
 - Skill安装与运行环境。
-  - 本机实体目录为 `~/.agents/skills/autofigure-edit-codex`，Codex目录是符号链接。项目Skill、实体目录与webide两套安装保持同步；旧安装备份见 `~/.local/share/autofigure-install-backups/20261009/`。
+  - 本机实体目录为 `~/.agents/skills/autofigure-edit-codex`，Codex目录是符号链接。webide安装目录为 `/root/.agents/skills/autofigure-edit-codex` 和 `/root/.codex/skills/autofigure-edit-codex`；旧安装备份见 `~/.local/share/autofigure-install-backups/20261009/`。
   - webide仓库为 `/root/autofigure-edit-codex`，`.env.webide-runtime` 配置GPU离线缓存与PPT运行时。sharp位于独立 `autofigure-image-runtime`，链接到PPT运行时；STSong和Times New Roman已安装并经fontconfig确认，Linux覆盖样例导出及重新导入通过。
   - GPU启动器和SAM3运行说明见 `TUTORIAL.md`。远端真实全链路记录在 `outputs/webide-demo-001/`，此前完成H20分割、抠图和SVG优化；本次仅重验导出器。
 - 历史PII示例位于 `outputs/pii-flywheel-003/`。
@@ -65,7 +65,7 @@
   2. 使用 `/usr/bin/python3` 运行系统skill-creator的 `quick_validate.py`，该解释器具备PyYAML。
 - 运行本机真实示例。
   1. 安装项目依赖并在本机完成 `codex login`。加载本地 `.env`，本机SAM3目录通过 `PYTHONPATH="$PWD/sam3"` 提供；Cairo通过已安装的Homebrew库路径加载。
-  2. 先写 `method.txt` 初稿，全文重读Skill的 `design.md` 并逐项核对后，设置 `AUTOFIGURE_IMAGE_REQUEST_DIR` 到运行目录，启动 `.venv/bin/python -u autofigure2.py --provider codex`，显式设置优化次数。
+  2. 准备 `method.txt` 并读取实际 `style.txt`；自定义风格用 `--style_file` 传入，省略时加载主程序同目录默认文件。设置 `AUTOFIGURE_IMAGE_REQUEST_DIR` 到运行目录，启动 `.venv/bin/python -u autofigure2.py --provider codex`，显式设置优化次数。
   3. 日志出现 `Codex image request:` 后读取请求并调用内置image-gen。查看候选图、逐项验收并定稿后才原子回传绝对路径；同一进程继续，验收占用既有30分钟等待时间。
   4. 主程序退出后保留原始SVG，执行Skill中的压缩与PPTX导出。比较叶对象数，逐一核验语义文本框与多色密集区域，渲染后检查图形与文字。
 - 验证PPTX文件。

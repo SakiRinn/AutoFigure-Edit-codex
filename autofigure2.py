@@ -298,7 +298,7 @@ def call_llm_image_generation(
     """
     provider = _normalize_provider_name(provider, image=True)
     if provider == "codex":
-        return codex_bridge.call_image(prompt, reference_image, model, image_size)
+        return codex_bridge.call_image(prompt, reference_image, model)
     if provider == "custom":
         return _call_openai_compatible_image_generation(prompt, api_key, model, base_url, reference_image)
     if provider == "bianxie":
@@ -1311,12 +1311,14 @@ def generate_figure_from_method(
     reference_image_path: Optional[str] = None,
     image_size: str = GEMINI_DEFAULT_IMAGE_SIZE,
     enable_upscale: bool = True,
+    style_text: Optional[str] = None,
 ) -> str:
     """
     使用 LLM 生成学术风格图片
 
     Args:
         method_text: Paper method 文本内容
+        style_text: Markdown风格要求；None时读取主程序同目录的style.txt
         output_path: 输出图片路径
         api_key: API Key
         model: 生图模型名称
@@ -1354,36 +1356,45 @@ def generate_figure_from_method(
     elif provider in ("bianxie", "openai"):
         print(f"图像尺寸: {_resolve_openai_image_size(image_size, reference_image)}")
 
+    if style_text is None:
+        style_text = Path(__file__).with_name("style.txt").read_text(encoding="utf-8")
+
+    prompt = """Create a clear scientific figure at the standard of a spotlight-level paper in a top-tier conference or journal. Explain the method in <METHOD> and apply the visual requirements in <STYLE>.
+
+Use the two sections according to their roles:
+
+- Treat <METHOD> as the source of scientific content. Preserve the stated components, their roles, and the direction and meaning of their connections.
+- Keep terminology, mathematical notation, and supplied data accurate. Include only technical claims and results supported by the method.
+- Show the central mechanism in enough detail to explain how it works. Simplify supporting components where their meaning remains clear.
+- Treat <STYLE> as requirements for visual presentation. Apply them without changing the scientific meaning.
+
+Design the composition around the method:
+
+- Choose a layout that makes the main process easy to follow and important internal relationships visible.
+- Use concise labels and meaningful visual structure. Let the content determine the arrangement and visual emphasis, subject to explicit requirements in <STYLE>.
+- Read Markdown headings and lists as input organization. Keep section tags and instruction text out of the figure.
+"""
     if use_reference_image:
-        prompt = f"""Generate a figure to visualize the method described below.
+        prompt += """
+Use the supplied reference image as a visual style guide:
 
-You should closely imitate the visual (artistic) style of the reference figure I provide, focusing only on aesthetic aspects, NOT on layout or structure.
+- Study its visual tone, level of abstraction, line treatment, color relationships, shading, icon design, connector appearance, and typography.
+- Carry suitable visual characteristics into the new figure. Derive the scientific content, component count, and connections from <METHOD>, and choose the layout for this method.
+- Do not copy unrelated labels, technical content, or decorative elements from the reference.
+- Follow explicit requirements in <STYLE> wherever they differ from the reference. Use the reference to guide visual details that <STYLE> leaves open.
+"""
+    prompt += f"""
+Return the finished figure.
 
-Specifically, match:
-- overall visual tone and mood
-- illustration abstraction level
-- line style
-- color usage
-- shading style
-- icon and shape style
-- arrow and connector aesthetics
-- typography feel
+<STYLE>
+{style_text}
+</STYLE>
 
-The content structure, number of components, and layout may differ freely.
-Only the visual style should be consistent.
-
-The goal is that the figure looks like it was drawn by the same illustrator using the same visual design language as the reference figure.
-
-Below is the method section of the paper:
-\"\"\"
+<METHOD>
 {method_text}
-\"\"\""""
-    else:
-        prompt = f"""Generate a professional academic journal style figure for the paper below so as to visualize the method it proposes, below is the method section of this paper:
+</METHOD>
 
-{method_text}
-
-The figure should be engaging and using academic journal style."""
+This image generation task is extremely difficult and requires an exceptionally high level of detail and quality; think with maximum effort."""
 
     print(f"发送请求到: {base_url}")
 
@@ -3224,12 +3235,14 @@ def method_to_svg(
     image_size: str = GEMINI_DEFAULT_IMAGE_SIZE,
     enable_upscale: bool = True,
     input_figure_path: Optional[str] = None,
+    style_text: Optional[str] = None,
 ) -> dict:
     """
     完整流程：Paper Method → SVG with Icons
 
     Args:
         method_text: Paper method 文本内容
+        style_text: Markdown风格要求；None时使用项目默认style.txt
         output_dir: 输出目录
         api_key: API Key
         base_url: API base URL
@@ -3345,6 +3358,7 @@ def method_to_svg(
     else:
         generate_figure_from_method(
             method_text=method_text,
+            style_text=style_text,
             output_path=str(figure_path),
             api_key=image_api_key,
             model=image_gen_model,
@@ -3598,6 +3612,11 @@ if __name__ == "__main__":
     input_group.add_argument("--method_file", default=None, help="包含 paper method 的文本文件路径")
     input_group.add_argument("--input_figure_path", default=None, help="直接导入已有的步骤一图片，跳过生图")
 
+    parser.add_argument(
+        "--style_file", default=None,
+        help="UTF-8风格文件（可使用Markdown）；省略时加载主程序同目录的style.txt",
+    )
+
     # 输出参数
     parser.add_argument("--output_dir", default="./output", help="输出目录（默认: ./output）")
 
@@ -3731,9 +3750,16 @@ if __name__ == "__main__":
         with open(args.method_file, 'r', encoding='utf-8') as f:
             method_text = f.read()
 
+    if args.style_file and args.input_figure_path:
+        parser.error("--style_file 不能与 --input_figure_path 同时使用")
+    style_text = None
+    if args.style_file is not None:
+        style_text = Path(args.style_file).read_text(encoding="utf-8")
+
     # 运行完整流程
     result = method_to_svg(
         method_text=method_text,
+        style_text=style_text,
         output_dir=args.output_dir,
         api_key=args.api_key,
         base_url=args.base_url,

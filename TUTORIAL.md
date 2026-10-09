@@ -2,8 +2,9 @@
 
 ## 安装与启动
 
-本发行版以 `16f3749` 为上游基线，生图由当前会话内置image-gen完成，文本请求使用Codex SDK。\
-原版阶段顺序保持冻结，生图模板仅删除 `cute characters` 要求，其余提示保持原样。
+本发行版以 `16f3749` 为上游基线，生图由当前会话内置image-gen完成，文本请求使用Codex SDK。
+
+原版阶段顺序保持冻结。英文生图模板分别用 `<METHOD>` 和 `<STYLE>` 包裹方法内容与绘图风格。
 
 完整绘图的材料准备与PPTX后处理由入口Skill负责。首次使用按以下顺序准备：
 
@@ -20,17 +21,22 @@
    ```
 
 4. 在Codex中调用 `autofigure-edit-codex`，提供材料并说明目标风格。
-   - 整体采用rich pastel配色，图标使用lineal color或restrained flat特征，也可融合。
-   - 图标用于概括对象，具体结构优先用形状示意；适用的3D结构保留立体表达。
-   - 生图规则见 [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)。用户指定参考图只模仿风格，结构和布局自由变化；配套图标示例仅供Agent阅读。
-   - Skill先写 `method.txt` 初稿，再全文读取 `design.md`，逐项核对并补齐规则，保存核对记录后启动。
+   - `method.txt` 保存论文方法内容，绘图风格保存为独立的 `style.txt` 。两者按UTF-8读取，可用Markdown组织。
+   - 默认风格见根目录 [style.txt](style.txt)，完整覆盖 [生图设计](.codex/skills/autofigure-edit-codex/references/design.md) 的设计要求。
+   - Skill读取实际使用的风格文件，生成后核对方法与风格；用户指定参考图只借鉴视觉，明确风格要求优先。
+   - 配套图标示例仅供Agent阅读。默认风格完成逐项覆盖审查后，常规绘图读取实际风格文件。
 5. 当前Agent用以下命令启动，并按[生图交接](.codex/skills/autofigure-edit-codex/references/imagegen.md)处理请求。
    - 生图调用等待回传，Agent查看候选图并逐项验收，定稿回传后同一Python进程继续。
    - 独立终端使用 `--input_figure_path` 导入已有图片，可跳过生图交接。
 
    ```bash
    export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
-   .venv/bin/python -u autofigure2.py --provider codex --method_file outputs/run-001/method.txt --output_dir outputs/run-001 --sam_backend local --optimize_iterations 1
+   .venv/bin/python -u autofigure2.py \
+     --provider codex \
+     --method_file outputs/run-001/method.txt \
+     --output_dir outputs/run-001 \
+     --sam_backend local \
+     --optimize_iterations 1
    ```
 
 6. 示例显式启用一次SVG优化，上游CLI默认值保持不变。生成结束后由Skill执行密集对象压缩，再导出PPTX。入口说明和后处理示例都位于 [Skill目录](.codex/skills/autofigure-edit-codex/SKILL.md)。
@@ -67,7 +73,28 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 - 最多等待30分钟，包含生图、修订与验收；超时或工具失败会抛出异常。退出时清理临时交接目录。
 - 同一运行目录只保留一个进程；中断后使用新目录重跑。生成图片留在运行目录中。
 
-无参考图模板仅删除 ` with cute characters`，参考图模板完整保留。Provider继续追加最大努力说明与尺寸要求。
+两套英文模板采用自然段与列表，先放 `<STYLE>`，再放 `<METHOD>`。参考图补充视觉细节，明确的 `<STYLE>` 要求优先。
+
+两套模板统一包含细节、质量与最大努力要求，适用于所有生图Provider。Codex桥接原样传递提示词。
+
+尺寸由工具返回，提示词不再追加 `Requested image size` 。
+
+### 输入文件
+
+`--method_file` 保持原版用途，读取论文方法内容；也可通过原版的 `--method_text` 提供方法。
+
+风格文件的加载方式如下：
+
+- 未指定 `--style_file` 时，读取 `autofigure2.py` 同目录的默认 [style.txt](style.txt)，路径不依赖当前工作目录。
+- 指定 `--style_file` 时，该文件全文替换默认风格。按UTF-8读取，允许Markdown标题与列表。
+
+定制风格时，先复制默认文件，再调整所需条目，命令增加以下参数：
+
+```bash
+--style_file outputs/run-001/style.txt
+```
+
+两套模板均保持方法原文与风格原文。图像验收核对实际风格文件，设计规则变更时再对照 `design.md` 审查覆盖。
 
 ### 参数
 
@@ -78,12 +105,14 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 | `--svg_model codex-agent` | 使用SDK默认Agent模型；真实模型名传给SDK |
 | `--image_model codex-imagegen` | 当前会话内置生图；其他值报错 |
 | 原版 `max_tokens` / `temperature` | SDK未提供对应控制，采样采用Codex设置 |
-| 原版图片尺寸参数 | 写入工具prompt，实际尺寸以返回图片为准 |
+| 原版图片尺寸参数 | 内置工具没有尺寸参数，实际尺寸以返回图片为准 |
 
 当前内置工具没有图像模型选择或思考强度参数，不能显式设置最新模型或 `max`。
 最大努力提示属于自然语言要求。
 
-上游默认将不足4K长边的图片等比例放大。使用 `--disable_auto_upscale` 可保留返回像素尺寸。
+其他生图Provider沿用原有尺寸参数处理。上游默认将不足4K长边的图片等比例放大。
+
+使用 `--disable_auto_upscale` 可保留返回像素尺寸。
 
 ### 文本调用
 
@@ -127,9 +156,9 @@ CLI可通过帮助命令核对参数：
 .venv/bin/python autofigure2.py --help
 ```
 
-主链路相对上游仅增加Codex Provider接入，并删除无参考图模板中的 ` with cute characters`。
+主链路相对上游增加Codex Provider接入，支持独立风格文件，并重写两套英文生图模板。
 
-同步上游时保留这两处适配，逐项核对差异；对象压缩与PPTX导出继续保留在Skill中。
+同步上游时保留这些适配，逐项核对差异；对象压缩与PPTX导出继续保留在Skill中。
 
 本机完整示例位于 `outputs/pii-flywheel-003/`，输入来自PII分类数据飞轮项目。运行完成21个局部图标的分割与抠图，执行一次SVG优化。该历史示例曾在后处理重绘图标，未满足后来新增的一比一复刻要求；它用于验证编辑单元与导出能力。示例合并26组语义文本，将整片多色散点压缩为一个对象。具体计数和检查结果保存在运行目录的 `verification.json`；`run.log` 记录原始链路执行。该目录不随代码提交。
 

@@ -8,7 +8,7 @@
 
 先完成 [输入材料核对](../SKILL.md#输入材料)，确认当前会话提供内置image-gen工具，再启动流水线。
 
-参考图须先用图像查看工具读取，用途沿用原版提示，只模仿视觉风格，结构和布局自由变化。
+参考图须先用图像查看工具读取，仅借鉴视觉风格。结构与布局按方法安排，风格文件中的明确要求优先。
 
 启动前设置 `AUTOFIGURE_IMAGE_REQUEST_DIR`，指向本次运行目录下的 `.imagegen`。
 
@@ -20,7 +20,8 @@ export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
 
 交接目录设置后，启动参数按输入类型选择：
 
-- 方法文本使用 `--method_file`，参考图使用 `--reference_image_path`。
+- 方法文本使用 `--method_file`，自定义风格使用 `--style_file`，省略风格参数时加载项目默认 `style.txt`。
+- 参考图使用 `--reference_image_path`。
 - 已有定稿图片才使用 `--input_figure_path`；这种模式不会发布生图请求。
 
 方法文本模式发布请求后，Agent按日志中的路径处理本次调用。
@@ -37,8 +38,9 @@ export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
 2. 将请求中的 `prompt` 原文传给内置image-gen，保留 `transparent_background`。
 3. 请求包含 `referenced_image_paths` 时，先查看这些图片，再按原顺序传入路径。
 4. 调用内置工具生成候选图，确认返回的实际图片路径，再用图像查看工具读取候选图。
-5. 按 [生图检查](design.md#生图检查) 逐项验收，记录实际检查结果；发现问题先修订并复查。
-   - 输入描述需要修正时，更新 `method.txt` 并复核受影响规则，再用修正后的描述调用内置工具。
+5. 按方法内容与本次实际风格文件逐项验收，记录实际检查结果；发现问题先修订并复查。
+   - 方法问题更新 `method.txt`，视觉问题更新本次 `style.txt`。保留模板，将完整新内容替换进对应标签后再调用工具。
+   - 保存本次实际调用提示与修订记录；修改文件不会改变等待中的请求，须更新工具调用提示。
    - 修订保留原请求的其他要求；未通过验收时禁止发布含 `image_path` 的成功响应。
 6. 全部适用项通过并定稿后，复制定稿图到运行主机本次目录中的 `imagegen.png`。
    - 内置工具通常保存到 `$CODEX_HOME/generated_images/`，以实际返回位置为准。
@@ -49,7 +51,7 @@ export AUTOFIGURE_IMAGE_REQUEST_DIR="$PWD/outputs/run-001/.imagegen"
 
 **调用约束：**
 
-- 首次调用原文传入请求中的 `prompt`，其中已含主程序模板与Provider追加的说明；修订只调整已记录问题。
+- 首次调用原文传入请求中的 `prompt`，其中已含主程序模板统一规定的细节、质量与最大努力要求，桥接层原样传递；修订只调整已记录问题。
 - 请求无参考图时，省略两个图片引用参数，避免带入当前对话中的其他图片。
 - 当前工具没有 `model`、`quality` 或 `reasoning_effort` 参数，调用时保留最大努力提示。
 - 调用结果不能报告为已设置 `max`，也不能声称已选择最新图像模型。
