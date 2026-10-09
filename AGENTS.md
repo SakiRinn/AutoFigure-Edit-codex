@@ -10,13 +10,13 @@
 - 绘图Skill与后处理。
   - [Skill入口](.codex/skills/autofigure-edit-codex/SKILL.md)负责材料准备、CLI运行及后处理，细则见Skill内的 `references/postprocess.md`。
   - [生图交接](.codex/skills/autofigure-edit-codex/references/imagegen.md)说明请求处理与远端图片回传。
-  - Skill的 `scripts/compact_svg.py` 执行显式对象计划，`scripts/svg_to_pptx.mjs` 导出原生PPT对象。
+  - Skill的 `scripts/compact_svg.py` 执行显式对象计划，`scripts/svg_to_pptx.mjs` 编排导出，`scripts/exporter/` 分担对象计划、SVG几何、文本及OOXML资源；接口见 `references/exporter.md`。
 - 验证与说明。
   - 后处理结果按Skill的 `references/postprocess.md` 核对对象与渲染。
   - `TUTORIAL.md` 保存安装和运行说明，`README.md` 和 `README_ZH.md` 保留上游正文并链接Codex入口。
 - 原始服务与本地产物。
   - `server.py` 和 `web/` 保持上游实现，Codex完整链路使用Skill入口。
-  - `outputs/` 保存运行产物且不提交，本地 `sam3/` 与 `.pptx-build/` 保持未跟踪。
+  - `outputs/` 保存运行产物且不提交，`.pptx-build/` 保存本地构建资产；`sam3/` 是Git子模块，既有本地改动须保留。
 
 模型调用完成后继续同一Python进程。文本请求使用SDK，生图调用等待当前Agent回传图片；同一输出目录仅运行一个进程。
 
@@ -40,29 +40,21 @@
 
 ## 项目状态
 
-项目以冻结主链路和Skill独立后处理组织实现，接手时按以下入口定位：
-
-- 主链路保留上游结构，Codex Provider在统一模型接口执行请求。
-  - `autofigure2.py` 的统一模型入口调用 `codex_bridge.call_text` 或 `call_image`。
-  - 已对照上游 `16f3749`，`generate_figure_from_method` 仅删除无参考图提示中的 ` with cute characters`；两种提示分支已隔离执行核对，该函数其余内容及参考图提示一致。阶段逻辑冻结。
-- 自动Provider固定 `openai-codex==0.156.1`，SDK随包提供配套运行时。
-  - 文本调用创建独立SDK任务，临时目录与项目指令隔离，结果返回上游解析器。
-  - `call_image` 在 `AUTOFIGURE_IMAGE_REQUEST_DIR` 发布独立请求，当前会话回传图片路径或错误；30分钟超时，正常返回或异常时清理。
-  - 本机已通过13项交接检查；原版 `generate_figure_from_method` 经真实内置image-gen回传后，同一进程保存PNG并清理交接目录。
-  - `outputs/local-demo-20261009-001/` 已完成本机真实生图至SVG，主进程退出0，日志记录6个图标分割与RMBG抠图及一次SVG优化；输入与可重跑命令见 `method.txt` 和 `launch.sh`。
-- 后处理实现位于Skill目录。
-  - `compact_svg.py` 支持连续同父矢量合并、根级区域栅格化和语义文本合并；`svg_to_pptx.mjs` 将多行混合样式文本导出为一个文本框。
-  - 生图顺序见Skill的输入材料与 `references/imagegen.md`。先写 `method.txt` 初稿，再全文重读 `design.md` 并逐项核对；图片验收定稿后才回传重建。Skill校验与独立情境复核通过，尚未用新规则重跑真实生图。
-  - [生图设计](.codex/skills/autofigure-edit-codex/references/design.md)负责画面组织与风格；配套图标展示图仅供Agent理解风格，生图只传入用户明确指定的参考图。webide仓库及两套Skill已同步此前的生图交接与字体规则；本机Skill已于2026-10-09同步至 `~/.agents/skills/autofigure-edit-codex`，`~/.codex/skills/autofigure-edit-codex` 为指向该实体目录的符号链接；实体目录共9个文件，内容与项目版一致。旧安装备份位于 `~/.local/share/autofigure-install-backups/20261009/`，链接修正前的Codex副本保存在其 `codex-skill-before-symlink/` 子目录。[可编辑转换](.codex/skills/autofigure-edit-codex/references/postprocess.md)负责SVG重建、缺陷修复和后处理。
-- PII示例已完成真实全链路，运行记录位于 `outputs/pii-flywheel-003/`。
-  - `run.log` 记录21个图标分割与RMBG抠图，执行一次SVG优化并完成替换；`repairs.json` 记录局部修复和后处理图标修整。
-  - `editable.objects.json` 记录工作副本277个叶对象降为136个，26组文本合为26个文本框，102个多色散点合为一张局部图片。
-  - `final.svg` 是上游原稿，`editable.svg` 和 `editable.png` 保存该次运行的图标风格；PPTX保留44个原生文本对象与90个原生几何对象，整片散点为唯一局部图片；SVG中的纯白底层在PPT中转为页面背景，PPT共135个可选对象。
-  - 003示例曾事后重绘图标，不符合后来新增的一比一复刻要求；`verification.json` 只保存编辑单元检查；导出后按Presentations Skill校验并重新导入渲染。
-
-- webide已部署图片交接，Linux回传与超时清理检查通过；本次提示核对、验收及模板短语修改尚未同步远端。项目位于 `/root/autofigure-edit-codex`，配置使用本机 `.env` 副本。
-  - `.env.webide-runtime` 指定Linux PPT运行时与离线模型缓存；SAM3源码位于 `/root/sam3`。项目Skill安装到远端两套目录，GPU启动器帮助命令通过；字体清单未检出STSong、NSimSun或Times New Roman，正式导出前须补齐。
-  - `outputs/webide-demo-001/run.log` 记录H20执行3个图标分割、RMBG抠图和一次SVG优化，最终替换成功；`remote-tests.log` 保存部署测试，新增描边回归后的22项后处理测试记录在 `skill-tests.log`，使用入口见 `TUTORIAL.md` 的webide章节。
+- 主链路以 `16f3749` 为上游基线，阶段逻辑冻结。
+  - `autofigure2.py` 统一入口调用 `codex_bridge.call_text/call_image`，无参考图提示仅删除 ` with cute characters`，参考图提示不变。
+  - Provider固定 `openai-codex==0.156.1`。文本SDK任务隔离项目指令；生图通过 `AUTOFIGURE_IMAGE_REQUEST_DIR` 交接，30分钟超时，返回或异常均清理。此前13项交接检查与同进程真实回传通过。
+  - Skill要求先写 `method.txt`，再全文重读 `design.md` 逐项核对；候选图验收定稿后才回传重建。新规则尚未重跑真实生图，历史本机记录见 `outputs/local-demo-20261009-001/`。
+- 后处理使用Skill内的显式对象计划。
+  - `compact_svg.py` 压缩SVG编辑单元；`scripts/exporter/` 导出原生形状与绑定连接符，保留语义文本框，支持单对象SVG图标、局部图片、原生表格及带XLSX的图表。使用接口见 `references/exporter.md`。
+  - 导出器重新打开实际PPTX检查对象与资源，再导入渲染。报告的结构检查与人工外观、编辑验收分开；Artifact预览对自定义连接符、二次路径与自定义虚线有已复现的局限，`previewWarnings` 要求另用PPTX渲染器核验；输入不支持的样式须按参考规范化，禁止用全页图片替代交付。
+  - 验证记录在 `outputs/exporter-rewrite/`，覆盖混合文本、原生C/Q曲线、连接符绑定、合并表格及图表数据。移动目标框80px后，绑定连接符宽度增加80px。一次性测试输入不提交，检查日志保留。
+- Skill安装与运行环境。
+  - 本机实体目录为 `~/.agents/skills/autofigure-edit-codex`，Codex目录是符号链接。项目Skill、实体目录与webide两套安装保持同步；旧安装备份见 `~/.local/share/autofigure-install-backups/20261009/`。
+  - webide仓库为 `/root/autofigure-edit-codex`，`.env.webide-runtime` 配置GPU离线缓存与PPT运行时。sharp位于独立 `autofigure-image-runtime`，链接到PPT运行时；STSong和Times New Roman已安装并经fontconfig确认，Linux覆盖样例导出及重新导入通过。
+  - GPU启动器和SAM3运行说明见 `TUTORIAL.md`。远端真实全链路记录在 `outputs/webide-demo-001/`，此前完成H20分割、抠图和SVG优化；本次仅重验导出器。
+- 历史PII示例位于 `outputs/pii-flywheel-003/`。
+  - `run.log` 记录21个图标分割与一次SVG优化，工作副本277个叶对象降至136个，26组文本合并，102个多色散点成为一个局部图片。
+  - PPT保留44个文本框与90个原生几何对象，散点为唯一图片，页面背景不占对象。该例曾后改图标，外观不满足后来新增的一比一复刻要求；`verification.json` 只保存编辑单元检查。
 
 ## 工作流程
 
@@ -77,12 +69,12 @@
   3. 日志出现 `Codex image request:` 后读取请求并调用内置image-gen。查看候选图、逐项验收并定稿后才原子回传绝对路径；同一进程继续，验收占用既有30分钟等待时间。
   4. 主程序退出后保留原始SVG，执行Skill中的压缩与PPTX导出。比较叶对象数，逐一核验语义文本框与多色密集区域，渲染后检查图形与文字。
 - 验证PPTX文件。
-  1. 用 `load_workspace_dependencies` 获取桌面运行时，传入 `RUNTIME_NODE_MODULES` 和 `ARTIFACT_TOOL_PATH`。
+  1. 用 `load_workspace_dependencies` 获取桌面运行时，传入 `RUNTIME_NODE_MODULES` 和 `ARTIFACT_TOOL_PATH`，按 `references/exporter.md` 编写PPT对象计划；先检查字体可用。
   2. Presentations Skill的finalizer要求最终输出目录与校验记录分开；先校验到独立目录，再复制相同文件到交付路径。
-  3. 使用 `render_presentation.mjs` 重新导入最终文件并渲染，不能仅检查导出前预览。
+  3. 导出器自动重新导入最终文件生成预览，查看 `.preview.png` 并核对 `.objects.json`；继续检查移动连接模块、编辑表格和图表数据。
   4. 多行坐标序列化可能产生末位差异，按0.01像素容差核对；图标存在均匀缩放时同步缩放描边，带描边的非均匀变换须先处理再导出。
 
 - 运行webide GPU环境。
   1. 先同步本次主程序、桥接代码与Skill，按[远端交接](.codex/skills/autofigure-edit-codex/references/imagegen.md#远端主机)回传定稿图。加载项目 `.env` 和 `.env.webide-runtime`，用 `/root/.local/share/autofigure-runtime/run_autofigure.py` 替代CLI中的脚本路径。启动器只在进程内包装SAM3处理器，采用官方BF16上下文，再将框和分数转为NumPy兼容的FP32；阶段逻辑保持冻结，提示适配见文件树总览。
-  2. 远端字体使用静态Roboto Regular/Bold。变量字体曾使Cairo正文错误加粗，替换为静态文件并刷新字体缓存后解决。PPT文字位置须按实际渲染测量，当前示例的逐框校正记录位于 `font-alignment.json`。
+  2. 历史SVG使用静态Roboto Regular/Bold，当前PPT按STSong与Times New Roman规则导出。变量字体曾使Cairo正文错误加粗，替换为静态文件并刷新字体缓存后解决。PPT文字位置须按实际渲染测量，当前示例的逐框校正记录位于 `font-alignment.json`。
   3. SVG line与path共用描边变换逻辑，均匀缩放须同步线宽。此前远端预览曾发现line缩放后描边过细，已在共享变换逻辑中修复。

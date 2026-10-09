@@ -196,7 +196,7 @@ SVG重建检查及后处理规则统一见 [可编辑转换](references/postproc
 1. 用 `scripts/compact_svg.py` 执行适用计划；脚本不负责选择元素。
 2. 超出支持范围时，在运行目录编写专用转换代码，遵守相同约束并检查局部渲染。
 3. 对照压缩前后渲染，检查文字、色彩和连接关系，复查已记录缺陷。
-4. 用 `scripts/svg_to_pptx.mjs` 和Artifact Tool导出PPTX。
+4. 按 [导出参考](references/exporter.md) 写入 `ppt-object-plan.json`，用 `scripts/svg_to_pptx.mjs INPUT.svg OUTPUT.pptx --plan PLAN.json` 导出；脚本消费对象计划并生成结构报告与最终文件预览。
 
 导出时分别处理普通组件、复杂资产与背景层级。
 

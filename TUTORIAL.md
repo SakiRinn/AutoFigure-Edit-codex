@@ -111,6 +111,16 @@ PPTX保留可转换的原生对象，定稿生成图决定最终外观，导出�
 
 实际压缩结果需要对照渲染与对象数。`<g>` 分组不会消除其内部图元，不能据此声称减少编辑负担。遇到整页栅格结果或导出不支持的组件，Skill应处理具体问题并重新核对。
 
+PPTX导出采用显式对象计划，按 [导出参考](.codex/skills/autofigure-edit-codex/references/exporter.md) 将语义对象映射为原生形状或整体资产。入口与实现分开，`scripts/exporter/` 负责几何、文本和包内资源。运行前提供Artifact Tool及sax、jszip、xml-js、sharp，并安装fontconfig和所用字体。
+
+```bash
+"$RUNTIME_NODE" "$SKILL_DIR/scripts/svg_to_pptx.mjs" \
+  "$RUN/editable.svg" "$RUN/final.pptx" \
+  --plan "$RUN/ppt-object-plan.json"
+```
+
+连接符写入端点绑定和原生箭头；表格使用真实单元格，图表按已知数据生成内嵌XLSX。导出器保留贝塞尔曲线，将混合样式与不同基线间距合入语义文本框；每个图标按计划保留为一个矢量或局部图片对象。输出的 `.objects.json` 记录包内结构，`.preview.png` 来自最终PPTX重新导入。Agent继续按交付要求核验外观和编辑行为。
+
 CLI可通过帮助命令核对参数：
 
 ```bash
@@ -161,6 +171,6 @@ webide使用已有GPU环境；运行本版前须同步桥接代码和Skill。\
 
 `.env.webide-runtime` 记录当前主机路径，和密钥配置一样留在远端本地。备份版本位于项目同级目录及 `/root/.local/share/autofigure-install-backups/20260920/`，不参与Skill扫描。
 
-历史示例已跑通生图、GPU分割、SVG优化与PPTX导出。PPTX有7个原生文本框，整片散点保留为一张局部图片，页面背景不占对象；备注为空。历史部署记录包含原始链路5项测试与Skill后处理22项测试。此前已验证SDK 0.156.1的CLI登录状态、CUDA可用性与GPU启动器帮助命令。远端已部署图片交接与字体规则，Linux图片回传、超时清理与GPU启动器帮助检查通过；本次提示核对与生图验收更新尚未同步远端，未重跑远端真实生图至PPTX。图形轮廓和文本布局已对照渲染；原图细微纹理与原生填充、字体抗锯齿仍有差异，本示例验证远端全链路运行，未达到逐像素复刻。
+历史示例已跑通生图、GPU分割、SVG优化与PPTX导出。PPTX有7个原生文本框，整片散点保留为一张局部图片，页面背景不占对象；备注为空。历史部署记录包含原始链路5项测试与Skill后处理22项测试。此前已验证SDK 0.156.1的CLI登录状态、CUDA可用性与GPU启动器帮助命令。远端已部署图片交接与字体规则，Linux图片回传、超时清理与GPU启动器帮助检查通过；提示核对与生图验收规则随仓库版本同步；本次导出器使用独立覆盖样例验证，未重跑远端真实生图至PPTX。图形轮廓和文本布局已对照渲染；原图细微纹理与原生填充、字体抗锯齿仍有差异，本示例验证远端全链路运行，未达到逐像素复刻。
 
-远端字体清单尚未检出STSong、NSimSun或Times New Roman。按当前字体规则，正式导出前须补齐可用字体。
+远端已安装STSong与Times New Roman，fontconfig匹配检查通过。sharp安装于 `/root/.local/share/autofigure-image-runtime`，由PPT运行时的node_modules符号链接引用；该独立目录避免改动已有Artifact Tool安装。Linux覆盖样例已完成导出与最终PPTX重新导入渲染。
