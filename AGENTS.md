@@ -27,7 +27,7 @@
 - 本机Skill安装以 `~/.agents/skills` 为实体目录，在 `~/.codex/skills` 创建指向同一Skill的符号链接；后续同步只更新实体目录。
 - Python代码的import统一放在文件开头，新增或修改代码时采用顶层导入。
 - 一次性验证脚本与测试文件用毕删除，不纳入Git提交。
-- 生图方法与风格分别写入 `method.txt` 和 `style.txt`，均可使用Markdown；`detail.txt` 保存已定绘图安排，未限定的布局和视觉细节由模型安排。
+- 生图方法与风格分别写入 `method.txt` 和 `style.txt`，均可使用Markdown；style约束整图宏观风格，detail约束指定部分的微观细节。首轮默认省略detail，后续按画面效果主动提炼并逐步补充。
   - 保留异色要求；用户未指定时，外层Agent不预先固定分区位置、空间分配或加粗名单，生成后按实际画面检查。
 - 科研图默认采用rich pastel配色，保持专业、清晰，色温不限。
   - 背景与内部元素分别配色；图标与局部背景、箭头与文字分别使用不同色相，标签沿用文字配色。
@@ -44,7 +44,7 @@
 - 主链路以 `16f3749` 为上游基线，阶段逻辑冻结。
   - `autofigure2.py` 统一入口调用 `codex_bridge.call_text/call_image`。两套英文生图模板按参考图有无分支，依次放 `<STYLE>`、`<METHOD>`，非空细节追加 `<DETAIL>`。方法事实优先，明确局部细节可覆盖一般风格默认项。所有Provider共用末尾的细节、质量与最大努力要求，Codex桥接原样传递提示词。可选细节48组组合及CLI传递检查通过，见 `outputs/detail-input-verification/checks.json`。
   - Provider固定 `openai-codex==0.156.1`。文本SDK任务隔离项目指令；生图通过 `AUTOFIGURE_IMAGE_REQUEST_DIR` 交接，30分钟超时，返回或异常均清理。此前13项交接检查与同进程真实回传通过。
-  - Skill分别准备方法与风格，按需从候选图提炼完整细节文件，以文字重新生成；常规绘图读取实际输入文件；验收清除图内大标题与解释性文字补丁，候选图定稿后才回传。默认风格经独立subagent逐项审查通过。参数与交接7组检查及真实CLI帮助验证通过，证据见 `outputs/style-input-verification/`；本轮未调用真实生图。
+  - Skill分别准备方法与风格，首轮默认省略detail，后续从值得继承且需改进的候选图主动提炼局部细节，以文字重新生成；常规绘图读取实际输入文件；验收清除图内大标题与解释性文字补丁，候选图定稿后才回传。默认风格经独立subagent逐项审查通过。参数与交接7组检查及真实CLI帮助验证通过，证据见 `outputs/style-input-verification/`；本轮未调用真实生图。
 - 后处理使用Skill内的显式对象计划。
   - `compact_svg.py` 压缩SVG编辑单元；`scripts/exporter/` 导出原生形状与绑定连接符，保留语义文本框，支持单对象SVG图标、局部图片、原生表格及带XLSX的图表。使用接口见 `references/exporter.md`。
   - 导出器重新打开实际PPTX检查对象与资源，再导入渲染。报告的结构检查与人工外观、编辑验收分开；Artifact预览对自定义连接符、二次路径与自定义虚线有已复现的局限，`previewWarnings` 要求另用PPTX渲染器核验；输入不支持的样式须按参考规范化，禁止用全页图片替代交付。

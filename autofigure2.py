@@ -1368,7 +1368,7 @@ Use the input sections according to their roles:
 - Treat <METHOD> as the source of scientific content. Preserve the stated components, their roles, and the direction and meaning of their connections.
 - Keep terminology, mathematical notation, and supplied data accurate. Include only technical claims and results supported by the method.
 - Show the central mechanism in enough detail to explain how it works. Simplify supporting components where their meaning remains clear.
-- Treat <STYLE> as requirements for visual presentation. Apply them without changing the scientific meaning.
+- Treat <STYLE> as global visual requirements for the whole figure, such as its palette, typography, and visual language. Apply them without changing the scientific meaning.
 
 Design the composition around the method:
 
@@ -1381,7 +1381,7 @@ Design the composition around the method:
         prompt += """
 Apply the drawing decisions in <DETAIL>:
 
-- Treat these as concrete requirements for the new figure, including details to preserve and target improvements.
+- Treat <DETAIL> as local requirements for the specified modules, regions, or connections, including details to preserve and target improvements. Each requirement applies to its named part of the figure.
 - Follow the specified arrangements while preserving the scientific content in <METHOD>.
 - Use <DETAIL> to resolve specific visual choices that <STYLE> leaves open. Explicit local overrides in <DETAIL> take priority over general style defaults.
 - Choose unspecified details according to the method and style. The description must stand on its own; do not assume access to an earlier image.

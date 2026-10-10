@@ -100,9 +100,13 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 
 ### 绘图细节
 
-`--detail_file` 接收本次绘图安排，按UTF-8读取，支持Markdown。省略或空白时不加入细节区块。
+`style.txt` 约束整图的宏观风格，`detail.txt` 约束指定部分的微观细节。每条细节应指明模块、区域或连接。
 
-已有具体安排时，可在方法生图命令中增加此参数：
+首轮默认只用method和style，让模型自由构图。根据候选图效果，后续逐步补充detail。
+
+`--detail_file` 按UTF-8读取，支持Markdown。省略或空白时不加入细节区块。
+
+后续形成局部安排后，可在方法生图命令中增加此参数：
 
 ```bash
 --detail_file outputs/run-001/detail.txt
@@ -133,7 +137,9 @@ macOS使用CairoSVG时，需要已安装Cairo动态库。Apple Silicon的Homebre
 - Increase spacing around output labels while keeping each label near its branch.
 ```
 
-Agent可查看满意的候选图，提炼上述要求，再按文字重新生成。候选图不会自动作为图片输入。
+候选图有值得保留的特征且需继续改进时，Agent应主动提炼上述要求，再按文字重新生成。
+
+候选图不会自动作为图片输入。
 
 用户指定的风格参考图仍按原参数传入。生成后核对保留项与改进目标，按需继续调整。
 

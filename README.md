@@ -54,11 +54,13 @@ Copy that file to customize the style. `--style_file path/to/style.txt` replaces
 
 The English prompt places `<STYLE>` before `<METHOD>`.
 
-Optional `--detail_file path/to/detail.txt` adds concrete drawing decisions in `<DETAIL>`.
+`style.txt` sets the global visual style. Optional `--detail_file path/to/detail.txt` adds local requirements for named parts in `<DETAIL>`.
 
 Omitted or blank details add no section. Each file should describe the complete current requirements.
 
-An agent can describe useful details from a candidate image and request a new generation from text.
+Start with method and style only, leaving the model free to compose the first figure.
+
+When a promising candidate needs further work, the agent should extract useful local details and improvement targets. Add them progressively for later generations.
 
 A reference image guides visual style. Explicit style and detail requirements take priority.
 
